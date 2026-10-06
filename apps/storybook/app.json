@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "NOMOS Storybook",
+    "slug": "nomos-storybook",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    }
+  }
+}

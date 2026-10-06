@@ -1,0 +1,10 @@
+/** @type {import('jest').Config} */
+module.exports = {
+  testEnvironment: 'node',
+  transform: {
+    '\\.ts$': [
+      'babel-jest',
+      { presets: ['@babel/preset-typescript'], plugins: ['@babel/plugin-transform-modules-commonjs'] },
+    ],
+  },
+};

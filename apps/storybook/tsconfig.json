@@ -1,0 +1,8 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true
+  },
+  "include": ["**/*.ts", "**/*.tsx", ".rnstorybook/**/*", ".storybook/**/*"],
+  "exclude": ["node_modules", "storybook-static", "dist"]
+}
