@@ -175,21 +175,31 @@ export const LongContent: Story = {
   render: (args) => <SheetDemo {...args} triggerLabel="Read guidance" />,
 };
 
+function CodeOfConductDemo() {
+  const [visible, setVisible] = useState(false);
+  return (
+    <Stack fill align="center" justify="center" padding="lg">
+      <Button label="Join workplace" onPress={() => setVisible(true)} />
+      <Sheet
+        visible={visible}
+        onDismiss={() => setVisible(false)}
+        title="Code of conduct"
+        dismissable={false}
+      >
+        <Stack gap="lg">
+          <Text color="secondary">
+            Before joining the Northshire workplace, confirm that you will stay impartial and keep
+            voter information confidential.
+          </Text>
+          <Button label="I agree" fullWidth onPress={() => setVisible(false)} />
+        </Stack>
+      </Sheet>
+    </Stack>
+  );
+}
+
 export const RequiresAChoice: Story = {
-  args: {
-    title: 'Code of conduct',
-    dismissable: false,
-    children: (
-      <Stack gap="lg">
-        <Text color="secondary">
-          Before joining the Northshire workplace, confirm that you will stay impartial and keep
-          voter information confidential.
-        </Text>
-        <Button label="I agree" fullWidth />
-      </Stack>
-    ),
-  },
-  render: (args) => <SheetDemo {...args} triggerLabel="Join workplace" />,
+  render: () => <CodeOfConductDemo />,
 };
 
 /** Starts open, so the open state is visible without interaction (and covered by the smoke test). */
