@@ -102,7 +102,14 @@ export interface IconProps {
   testID?: string;
 }
 
-export function Icon({ name, size = 'md', color, 'aria-label': ariaLabel, style, testID }: IconProps) {
+export function Icon({
+  name,
+  size = 'md',
+  color,
+  'aria-label': ariaLabel,
+  style,
+  testID,
+}: IconProps) {
   const theme = useTheme();
   const px = typeof size === 'number' ? size : theme.sizes.icon[size];
   const flip = I18nManager.isRTL && directional.has(name);

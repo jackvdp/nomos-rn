@@ -1,5 +1,6 @@
 import type { ColorTokens, FontWeight, TextVariant } from '@nomos/tokens';
 import { fontWeight as fontWeights } from '@nomos/tokens';
+import type { Ref } from 'react';
 import { Text as RNText, type TextProps as RNTextProps } from 'react-native';
 
 import { useTheme } from '../../theme';
@@ -14,6 +15,7 @@ export interface TextProps extends RNTextProps {
   /** Overrides the variant's weight. */
   weight?: FontWeight;
   align?: 'auto' | 'left' | 'center' | 'right' | 'justify';
+  ref?: Ref<RNText>;
 }
 
 const headingVariants: ReadonlySet<TextVariant> = new Set([

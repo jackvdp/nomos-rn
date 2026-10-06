@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-native';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useTheme } from '../../theme';
 import { Button } from '../Button';
@@ -14,14 +13,6 @@ const meta = {
   title: 'Overlays/Sheet',
   component: Sheet,
   parameters: { fullscreen: true },
-  // The browser Storybook has no safe-area provider of its own.
-  decorators: [
-    (Story) => (
-      <SafeAreaProvider>
-        <Story />
-      </SafeAreaProvider>
-    ),
-  ],
   args: {
     visible: false,
     onDismiss: () => {},
@@ -137,7 +128,12 @@ function ActionSheetDemo({ startOpen = false }: { startOpen?: boolean }) {
   const close = () => setVisible(false);
   return (
     <Stack fill align="center" justify="center" padding="lg">
-      <Button label="Post options" variant="secondary" leadingIcon="more" onPress={() => setVisible(true)} />
+      <Button
+        label="Post options"
+        variant="secondary"
+        leadingIcon="more"
+        onPress={() => setVisible(true)}
+      />
       <Sheet visible={visible} onDismiss={close} aria-label="Post options" padded={false}>
         <PostActions onClose={close} />
       </Sheet>
@@ -151,16 +147,34 @@ export const ActionSheet: Story = {
 
 function Guidance() {
   const sections = [
-    ['Before polls open', 'Arrive by 06:30. Check the ballot box seals with the presiding officer and record each seal number.'],
-    ['Identifying voters', 'Ask each voter for their name and address and find them on the register before issuing a ballot.'],
-    ['Assisting voters', 'Voters with a disability may bring a companion. Offer the tactile voting device and large-print sample ballot.'],
-    ['Spoilt ballots', 'If a voter makes a mistake, cancel the ballot, mark it spoilt and issue a replacement. Record it in the log.'],
-    ['Closing the station', 'At 22:00, let anyone already queuing vote. Seal the ballot box slot and complete the ballot paper account.'],
-    ['Escalation', 'Contact the Northshire Electoral Commission helpline for anything the presiding officer cannot resolve.'],
-  ] as const;
+    {
+      heading: 'Before polls open',
+      body: 'Arrive by 06:30. Check the ballot box seals with the presiding officer and record each seal number.',
+    },
+    {
+      heading: 'Identifying voters',
+      body: 'Ask each voter for their name and address and find them on the register before issuing a ballot.',
+    },
+    {
+      heading: 'Assisting voters',
+      body: 'Voters with a disability may bring a companion. Offer the tactile voting device and large-print sample ballot.',
+    },
+    {
+      heading: 'Spoilt ballots',
+      body: 'If a voter makes a mistake, cancel the ballot, mark it spoilt and issue a replacement. Record it in the log.',
+    },
+    {
+      heading: 'Closing the station',
+      body: 'At 22:00, let anyone already queuing vote. Seal the ballot box slot and complete the ballot paper account.',
+    },
+    {
+      heading: 'Escalation',
+      body: 'Contact the Northshire Electoral Commission helpline for anything the presiding officer cannot resolve.',
+    },
+  ];
   return (
     <Stack gap="lg">
-      {sections.map(([heading, body]) => (
+      {sections.map(({ heading, body }) => (
         <Stack key={heading} gap="xs">
           <Text variant="bodyStrong">{heading}</Text>
           <Text color="secondary">{body}</Text>
@@ -202,7 +216,7 @@ export const RequiresAChoice: Story = {
   render: () => <CodeOfConductDemo />,
 };
 
-/** Starts open, so the open state is visible without interaction (and covered by the smoke test). */
+/** Starts open, so the open state shows without interaction and is smoke-tested. */
 export const Open: Story = {
   args: { visible: true, children: <ShiftDetails /> },
   render: (args) => <SheetDemo {...args} triggerLabel="View shift" />,

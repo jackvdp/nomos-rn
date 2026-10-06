@@ -70,10 +70,11 @@ export const TitleOnly: Story = {
 };
 
 export const Tones: Story = {
-  render: (args) => (
+  render: () => (
     <Stack gap="md">
-      <EmptyState {...args} tone="success" icon="check-circle" title="You're all caught up" description={undefined} action={undefined} />
-      <EmptyState {...args} tone="warning" icon="time" title="No shifts this week" description={undefined} action={undefined} />
+      <EmptyState tone="success" icon="check-circle" title="You're all caught up" />
+      <EmptyState tone="warning" icon="time" title="No shifts this week" />
+      <EmptyState tone="danger" icon="error" title="Couldn't load your credentials" />
     </Stack>
   ),
 };

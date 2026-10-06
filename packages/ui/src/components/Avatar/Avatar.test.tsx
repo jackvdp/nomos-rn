@@ -41,7 +41,9 @@ describe('Avatar', () => {
       <Avatar name="Daniel Mwangi" source={{ uri: 'file:///missing.jpg' }} testID="avatar" />,
     );
     await fireEvent(screen.getByTestId('avatar-image', { includeHiddenElements: true }), 'error');
-    expect(screen.queryByTestId('avatar-image', { includeHiddenElements: true })).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('avatar-image', { includeHiddenElements: true }),
+    ).not.toBeOnTheScreen();
     expect(screen.getByText('DM')).toBeOnTheScreen();
   });
 

@@ -7,8 +7,10 @@ import { Text } from '../Text';
 
 export type CheckboxState = boolean | 'indeterminate';
 
-export interface CheckboxProps
-  extends Omit<PressableProps, 'children' | 'style' | 'onPress' | 'disabled'> {
+export interface CheckboxProps extends Omit<
+  PressableProps,
+  'children' | 'style' | 'onPress' | 'disabled'
+> {
   /** `indeterminate` shows a dash, e.g. for "select all" when only some items are selected. */
   checked: CheckboxState;
   /** Called with the new value. An indeterminate checkbox becomes checked. */

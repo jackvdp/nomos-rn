@@ -9,7 +9,20 @@ const preview: Preview = {
       matchers: { color: /(background|color)$/i, date: /Date$/ },
     },
     options: {
-      storySort: { order: ['Foundations', 'Layout', 'Typography', 'Actions', 'Forms', 'Display', 'Feedback', 'Overlays', 'NOMOS'] },
+      storySort: {
+        order: [
+          'Foundations',
+          'Layout',
+          'Typography',
+          'Actions',
+          'Forms',
+          'Display',
+          'Feedback',
+          'Overlays',
+          'NOMOS',
+          'Patterns',
+        ],
+      },
     },
   },
 };

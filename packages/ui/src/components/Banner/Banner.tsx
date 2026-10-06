@@ -5,7 +5,7 @@ import { Pressable, View, type ViewProps } from 'react-native';
 import { makeStyles, useTheme } from '../../theme';
 import { Icon, type IconName } from '../Icon';
 import { Text } from '../Text';
-import { toneIcon } from './toneIcon';
+import { toneIcon } from '../../utils/toneIcon';
 
 export interface BannerAction {
   label: string;

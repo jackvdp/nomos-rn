@@ -29,21 +29,30 @@ type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {};
 
+const toneExamples = [
+  { tone: 'info', title: 'Info', message: 'Training materials were updated on 2 October.' },
+  { tone: 'success', title: 'Success', message: 'Your availability for 14 November was sent.' },
+  { tone: 'warning', title: 'Warning', message: 'Your credential expires in 14 days.' },
+  { tone: 'danger', title: 'Danger', message: "We couldn't save your timesheet." },
+  { tone: 'neutral', title: 'Neutral', message: 'This workspace is read-only during the count.' },
+  { tone: 'brand', title: 'Brand', message: 'New: message presiding officers directly.' },
+] as const;
+
 export const Tones: Story = {
   render: (args) => (
     <Stack gap="md">
-      <Banner {...args} tone="info" title="Info" message="Training materials were updated on 2 October." />
-      <Banner {...args} tone="success" title="Success" message="Your availability for 14 November was sent." />
-      <Banner {...args} tone="warning" title="Warning" message="Your credential expires in 14 days." />
-      <Banner {...args} tone="danger" title="Danger" message="We couldn't save your timesheet." />
-      <Banner {...args} tone="neutral" title="Neutral" message="This workspace is read-only during the count." />
-      <Banner {...args} tone="brand" title="Brand" message="New: message presiding officers directly." />
+      {toneExamples.map((example) => (
+        <Banner {...args} key={example.tone} {...example} />
+      ))}
     </Stack>
   ),
 };
 
 export const MessageOnly: Story = {
-  args: { title: undefined, message: 'Posts in this workspace are visible to Northshire staff only.' },
+  args: {
+    title: undefined,
+    message: 'Posts in this workspace are visible to Northshire staff only.',
+  },
 };
 
 export const WithAction: Story = {
@@ -58,7 +67,9 @@ export const WithAction: Story = {
 function DismissibleDemo() {
   const [visible, setVisible] = useState(true);
   if (!visible) {
-    return <Button label="Show banner again" variant="secondary" onPress={() => setVisible(true)} />;
+    return (
+      <Button label="Show banner again" variant="secondary" onPress={() => setVisible(true)} />
+    );
   }
   return (
     <Banner

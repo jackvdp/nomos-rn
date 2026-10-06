@@ -78,27 +78,28 @@ export function ContextLabel({
       {...rest}
     >
       <Icon name={contextIcons[kind]} size={size === 'sm' ? 'xs' : 'sm'} color={fg} />
+      {/*
+        One line of text, so truncation eats the audience before the name.
+        Separate flex items would shave sub-pixels off the name and ellipsise it.
+      */}
       <Text
         variant={textVariant}
-        weight="semibold"
+        weight="regular"
         numberOfLines={1}
         style={[styles.text, { color: fg }]}
       >
-        {name}
+        <Text variant={textVariant} weight="semibold" style={{ color: fg }}>
+          {name}
+        </Text>
+        {audience ? (
+          <>
+            {'  ·  '}
+            <Text variant={textVariant} weight="regular" style={{ color: fg }}>
+              {audience}
+            </Text>
+          </>
+        ) : null}
       </Text>
-      {audience ? (
-        <>
-          <View style={[styles.separator, { backgroundColor: fg }]} />
-          <Text
-            variant={textVariant}
-            weight="regular"
-            numberOfLines={1}
-            style={[styles.text, { color: fg }]}
-          >
-            {audience}
-          </Text>
-        </>
-      ) : null}
     </View>
   );
 }
@@ -124,10 +125,5 @@ const useStyles = makeStyles((t) => ({
   },
   text: {
     flexShrink: 1,
-  },
-  separator: {
-    width: t.space.xs,
-    height: t.space.xs,
-    borderRadius: t.radii.full,
   },
 }));

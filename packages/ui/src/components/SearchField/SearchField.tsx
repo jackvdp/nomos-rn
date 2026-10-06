@@ -11,11 +11,10 @@ import {
 import { makeStyles, useTheme } from '../../theme';
 import { Icon } from '../Icon';
 
-export interface SearchFieldProps
-  extends Omit<
-    TextInputProps,
-    'style' | 'value' | 'onChangeText' | 'editable' | 'placeholderTextColor' | 'multiline'
-  > {
+export interface SearchFieldProps extends Omit<
+  TextInputProps,
+  'style' | 'value' | 'onChangeText' | 'editable' | 'placeholderTextColor' | 'multiline'
+> {
   /**
    * Accessibility label, e.g. "Search people". Not shown: put visible hint
    * text in `placeholder`.

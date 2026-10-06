@@ -44,7 +44,13 @@ export const States: Story = {
     <Stack gap="lg">
       <ProgressBar {...args} label="Not started" value={0} />
       <ProgressBar {...args} label="Complete" value={1} tone="success" />
-      <ProgressBar {...args} label="No label row" showValue={false} value={0.4} aria-label="Sync progress" />
+      <ProgressBar
+        {...args}
+        label={undefined}
+        showValue={false}
+        value={0.4}
+        aria-label="Sync progress"
+      />
     </Stack>
   ),
 };

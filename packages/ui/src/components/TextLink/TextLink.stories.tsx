@@ -29,12 +29,12 @@ export const Inline: Story = {
   render: (args) => (
     <Stack gap="lg">
       <Text>
-        Read the <TextLink onPress={args.onPress}>polling station guide</TextLink> before your
-        first shift.
+        Read the <TextLink onPress={args.onPress}>polling station guide</TextLink> before your first
+        shift.
       </Text>
       <Text variant="bodySm" color="secondary">
-        Questions about your rota? Contact{' '}
-        <TextLink onPress={args.onPress}>Priya Raman</TextLink>, your station coordinator.
+        Questions about your rota? Contact <TextLink onPress={args.onPress}>Priya Raman</TextLink>,
+        your station coordinator.
       </Text>
       <Text variant="caption" color="tertiary">
         Updated 5 minutes ago · <TextLink onPress={args.onPress}>View history</TextLink>

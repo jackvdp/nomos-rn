@@ -11,7 +11,15 @@ import { makeStyles, useTheme } from '../theme';
 const swatchWidth = 160;
 const tileWidth = 104;
 
-export function Page({ title, intro, children }: { title: string; intro?: string; children: ReactNode }) {
+export function Page({
+  title,
+  intro,
+  children,
+}: {
+  title: string;
+  intro?: string;
+  children: ReactNode;
+}) {
   return (
     <Stack gap="xxl">
       <Stack gap="xs">
@@ -93,7 +101,15 @@ export function Swatch({ color, name, note }: { color: string; name: string; not
 }
 
 /** A small centred tile with a visual on top and labels below, e.g. an icon. */
-export function Tile({ children, name, detail }: { children: ReactNode; name: string; detail?: string }) {
+export function Tile({
+  children,
+  name,
+  detail,
+}: {
+  children: ReactNode;
+  name: string;
+  detail?: string;
+}) {
   const styles = useStyles();
   return (
     <View style={styles.tile}>

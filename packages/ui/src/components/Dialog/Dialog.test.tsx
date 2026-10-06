@@ -63,9 +63,7 @@ describe('Dialog', () => {
 
   test('animates out, then unmounts, when hidden', async () => {
     const { rerender } = await renderDialog();
-    await rerender(
-      <Dialog visible={false} onDismiss={() => {}} title="Revoke credential?" />,
-    );
+    await rerender(<Dialog visible={false} onDismiss={() => {}} title="Revoke credential?" />);
     expect(screen.getByText('Revoke credential?')).toBeOnTheScreen();
     await act(() => jest.advanceTimersByTime(500));
     expect(screen.queryByText('Revoke credential?')).toBeNull();

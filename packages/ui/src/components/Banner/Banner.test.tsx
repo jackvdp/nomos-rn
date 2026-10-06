@@ -3,7 +3,9 @@ import { Banner } from './Banner';
 
 describe('Banner', () => {
   test('is a polite status message by default', async () => {
-    await renderWithTheme(<Banner title="Station change" message="Northshire Library is now Station 14." />);
+    await renderWithTheme(
+      <Banner title="Station change" message="Northshire Library is now Station 14." />,
+    );
     const status = screen.getByRole('status');
     expect(status).toHaveAccessibleName(/Station change.*Northshire Library is now Station 14\./);
     expect(status).toHaveProp('aria-live', 'polite');
@@ -19,7 +21,11 @@ describe('Banner', () => {
   test('calls the action handler', async () => {
     const onPress = jest.fn();
     await renderWithTheme(
-      <Banner tone="warning" message="Your credential expires in 14 days." action={{ label: 'Renew it', onPress }} />,
+      <Banner
+        tone="warning"
+        message="Your credential expires in 14 days."
+        action={{ label: 'Renew it', onPress }}
+      />,
     );
     await userEvent.press(screen.getByRole('button', { name: 'Renew it' }));
     expect(onPress).toHaveBeenCalledTimes(1);
@@ -36,7 +42,9 @@ describe('Banner', () => {
   });
 
   test('uses a custom dismiss label', async () => {
-    await renderWithTheme(<Banner message="Hors ligne." onDismiss={() => {}} dismissLabel="Fermer" />);
+    await renderWithTheme(
+      <Banner message="Hors ligne." onDismiss={() => {}} dismissLabel="Fermer" />,
+    );
     expect(screen.getByRole('button', { name: 'Fermer' })).toBeOnTheScreen();
   });
 });

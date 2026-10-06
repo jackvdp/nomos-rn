@@ -39,10 +39,20 @@ const meta = {
     padding: { control: 'select', options: spaceKeys },
     paddingHorizontal: { control: 'select', options: spaceKeys },
     paddingVertical: { control: 'select', options: spaceKeys },
-    align: { control: 'select', options: ['stretch', 'flex-start', 'center', 'flex-end', 'baseline'] },
+    align: {
+      control: 'select',
+      options: ['stretch', 'flex-start', 'center', 'flex-end', 'baseline'],
+    },
     justify: {
       control: 'select',
-      options: ['flex-start', 'center', 'flex-end', 'space-between', 'space-around', 'space-evenly'],
+      options: [
+        'flex-start',
+        'center',
+        'flex-end',
+        'space-between',
+        'space-around',
+        'space-evenly',
+      ],
     },
   },
   render: (args) => (
@@ -90,7 +100,10 @@ export const Gap: Story = {
     <Stack gap="lg">
       {(['xs', 'sm', 'md', 'lg', 'xl'] as const).map((gap) => (
         <Stack key={gap} gap="xs">
-          <Text variant="labelSm" color="secondary">{`gap="${gap}" (${lightTheme.space[gap]})`}</Text>
+          <Text
+            variant="labelSm"
+            color="secondary"
+          >{`gap="${gap}" (${lightTheme.space[gap]})`}</Text>
           <Stack direction="row" gap={gap}>
             <Box label="A" />
             <Box label="B" />

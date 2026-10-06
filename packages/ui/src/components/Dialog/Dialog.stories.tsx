@@ -87,7 +87,8 @@ export const LeaveWorkspace: Story = {
 export const StackedActions: Story = {
   args: {
     title: 'Save your availability?',
-    message: 'You changed your availability for 14 November. Presiding officers see it straight away.',
+    message:
+      'You changed your availability for 14 November. Presiding officers see it straight away.',
     actions: [
       { label: 'Discard changes', variant: 'tertiary', onPress: () => {} },
       { label: 'Keep editing', onPress: () => {} },
@@ -127,7 +128,7 @@ export const WithContent: Story = {
   render: (args) => <DialogDemo {...args} triggerLabel="Share post" />,
 };
 
-/** Starts open, so the open state is visible without interaction (and covered by the smoke test). */
+/** Starts open, so the open state shows without interaction and is smoke-tested. */
 export const Open: Story = {
   args: { visible: true, actions: revokeActions },
   render: (args) => <DialogDemo {...args} triggerLabel="Open again" />,

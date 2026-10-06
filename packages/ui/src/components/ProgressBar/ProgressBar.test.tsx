@@ -4,11 +4,8 @@ import { ProgressBar } from './ProgressBar';
 describe('ProgressBar', () => {
   test('exposes its label and value as a percentage', async () => {
     await renderWithTheme(<ProgressBar label="Poll worker training" value={0.6} />);
-    expect(screen.getByRole('progressbar', { name: 'Poll worker training' })).toHaveAccessibilityValue({
-      min: 0,
-      max: 100,
-      now: 60,
-    });
+    const bar = screen.getByRole('progressbar', { name: 'Poll worker training' });
+    expect(bar).toHaveAccessibilityValue({ min: 0, max: 100, now: 60 });
   });
 
   test('clamps values outside 0 to 1', async () => {
@@ -18,8 +15,10 @@ describe('ProgressBar', () => {
         <ProgressBar aria-label="Under" value={-0.2} />
       </>,
     );
-    expect(screen.getByRole('progressbar', { name: 'Over' })).toHaveAccessibilityValue({ now: 100 });
-    expect(screen.getByRole('progressbar', { name: 'Under' })).toHaveAccessibilityValue({ now: 0 });
+    const over = screen.getByRole('progressbar', { name: 'Over' });
+    const under = screen.getByRole('progressbar', { name: 'Under' });
+    expect(over).toHaveAccessibilityValue({ now: 100 });
+    expect(under).toHaveAccessibilityValue({ now: 0 });
   });
 
   test('shows the percentage when showValue is set', async () => {

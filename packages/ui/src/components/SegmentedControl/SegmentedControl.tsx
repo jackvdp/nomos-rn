@@ -13,8 +13,10 @@ export interface SegmentedControlOption<T extends string = string> {
   disabled?: boolean;
 }
 
-export interface SegmentedControlProps<T extends string = string>
-  extends Omit<ViewProps, 'children'> {
+export interface SegmentedControlProps<T extends string = string> extends Omit<
+  ViewProps,
+  'children'
+> {
   /** Two to five short options. */
   options: readonly SegmentedControlOption<T>[];
   value: T;

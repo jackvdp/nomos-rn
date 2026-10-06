@@ -36,8 +36,8 @@ export const Playground: Story = {
       <Stack gap="md">
         <Text variant="headingLg">Election day shifts</Text>
         <Text color="secondary">
-          Choose the shifts you can cover at Station 12. Your presiding officer confirms the rota
-          by Friday.
+          Choose the shifts you can cover at Station 12. Your presiding officer confirms the rota by
+          Friday.
         </Text>
       </Stack>
     </Screen>

@@ -83,7 +83,8 @@ export function Button({
         {
           minHeight: height,
           paddingHorizontal: variant === 'tertiary' ? paddingBySize[size] - 4 : paddingBySize[size],
-          backgroundColor: pressed && !inactive ? theme.colors.action[variant].bgPressed : colors.bg,
+          backgroundColor:
+            pressed && !inactive ? theme.colors.action[variant].bgPressed : colors.bg,
           borderColor: colors.border,
         },
         fullWidth && styles.fullWidth,

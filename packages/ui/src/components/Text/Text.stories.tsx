@@ -102,12 +102,12 @@ export const Truncation: Story = {
   render: () => (
     <Stack gap="md">
       <Text numberOfLines={1}>
-        Reminder for presiding officers: collect the ballot box keys from the returning officer
-        at the district office before 18:00 on Wednesday.
+        Reminder for presiding officers: collect the ballot box keys from the returning officer at
+        the district office before 18:00 on Wednesday.
       </Text>
       <Text numberOfLines={2} variant="bodySm" color="secondary">
-        Reminder for presiding officers: collect the ballot box keys from the returning officer
-        at the district office before 18:00 on Wednesday, and sign the custody log.
+        Reminder for presiding officers: collect the ballot box keys from the returning officer at
+        the district office before 18:00 on Wednesday, and sign the custody log.
       </Text>
     </Stack>
   ),
@@ -122,8 +122,8 @@ export const Announcement: Story = {
       </Text>
       <Text variant="headingSm">Polling station rota published</Text>
       <Text>
-        The rota for the 14 November election is now available. Check your station and shift,
-        and <Text variant="bodyStrong">confirm by Friday</Text>.
+        The rota for the 14 November election is now available. Check your station and shift, and{' '}
+        <Text variant="bodyStrong">confirm by Friday</Text>.
       </Text>
       <Text variant="caption" color="tertiary">
         Priya Raman · 2 hours ago

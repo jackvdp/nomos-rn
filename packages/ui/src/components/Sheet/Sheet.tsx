@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { makeStyles, useTheme } from '../../theme';
 import { useReducedMotion } from '../../utils';
-import { focusForAccessibility, useOverlayTransition } from '../Dialog/useOverlayTransition';
+import { focusForAccessibility, useOverlayTransition } from '../../utils/useOverlayTransition';
 import { Text } from '../Text';
 
 export interface SheetProps {
@@ -29,7 +29,7 @@ export interface SheetProps {
   children: ReactNode;
   /** Whether the user can close the sheet without finishing. Defaults to true. */
   dismissable?: boolean;
-  /** Pads the content to line up with the title. Turn off for edge-to-edge rows. Defaults to true. */
+  /** Pads the content to line up with the title. Turn off for edge-to-edge rows. */
   padded?: boolean;
   /** Accessibility label for the drag handle, which closes the sheet when tapped. */
   dismissLabel?: string;
@@ -111,13 +111,11 @@ export function Sheet({
     });
   }, [dragY, theme]);
 
-  const translateY = useMemo(
-    () =>
-      reducedMotion
-        ? dragY
-        : Animated.add(progress.interpolate({ inputRange: [0, 1], outputRange: [height, 0] }), dragY),
-    [reducedMotion, progress, dragY, height],
-  );
+  const translateY = useMemo(() => {
+    if (reducedMotion) return dragY;
+    const slide = progress.interpolate({ inputRange: [0, 1], outputRange: [height, 0] });
+    return Animated.add(slide, dragY);
+  }, [reducedMotion, progress, dragY, height]);
   const maxHeight = Math.min(window.height * MAX_HEIGHT, window.height - insets.top);
 
   return (
@@ -172,8 +170,11 @@ export function Sheet({
             </View>
           )}
           {title ? (
-            <View ref={titleRef} accessible style={styles.header}>
-              <Text variant="headingSm">{title}</Text>
+            // The wrapper carries the heading role because only a View can take the focus ref.
+            <View ref={titleRef} accessible role="heading" aria-label={title} style={styles.header}>
+              <Text variant="headingSm" role="none">
+                {title}
+              </Text>
             </View>
           ) : null}
           <ScrollView

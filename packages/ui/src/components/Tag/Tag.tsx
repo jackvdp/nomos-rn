@@ -42,7 +42,8 @@ export function Tag({
   const styles = useStyles();
   const colors = theme.colors.tone[tone];
   const fg = variant === 'solid' ? colors.onSolid : colors.onSubtle;
-  const bg = variant === 'solid' ? colors.solid : variant === 'subtle' ? colors.subtle : 'transparent';
+  const bg =
+    variant === 'solid' ? colors.solid : variant === 'subtle' ? colors.subtle : 'transparent';
   const borderColor = variant === 'outline' ? colors.border : bg;
 
   return (

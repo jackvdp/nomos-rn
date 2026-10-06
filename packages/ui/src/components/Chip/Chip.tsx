@@ -14,8 +14,10 @@ import { makeStyles, useTheme } from '../../theme';
 import { Icon, type IconName } from '../Icon';
 import { Text } from '../Text';
 
-export interface ChipProps
-  extends Omit<PressableProps, 'children' | 'style' | 'onPress' | 'disabled'> {
+export interface ChipProps extends Omit<
+  PressableProps,
+  'children' | 'style' | 'onPress' | 'disabled'
+> {
   /** Visible text. Also the accessibility label unless you pass one. */
   label: string;
   /** Shows the chip as on, with a check mark. */

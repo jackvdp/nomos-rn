@@ -42,7 +42,12 @@ export const Kinds: Story = {
         name="Northshire Electoral Commission"
         audience="Members only"
       />
-      <ContextLabel {...args} kind="network" name="NOMOS Network" audience="Public to the Network" />
+      <ContextLabel
+        {...args}
+        kind="network"
+        name="NOMOS Network"
+        audience="Public to the Network"
+      />
       <ContextLabel
         {...args}
         kind="workspace"
@@ -101,7 +106,11 @@ export const PostHeader: Story = {
             </Text>
           </Stack>
         </Stack>
-        <ContextLabel kind="organisation" name="Northshire Electoral Commission" audience="All staff" />
+        <ContextLabel
+          kind="organisation"
+          name="Northshire Electoral Commission"
+          audience="All staff"
+        />
         <Text>
           Ballot box seals for polling stations 10 to 18 are ready to collect from the returning
           office from 8:00 tomorrow.

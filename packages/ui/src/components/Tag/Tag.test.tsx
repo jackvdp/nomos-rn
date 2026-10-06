@@ -20,7 +20,12 @@ describe('Tag', () => {
 
   test('can carry a fuller accessibility label', async () => {
     await renderWithTheme(
-      <Tag label="Expires in 14 days" tone="warning" accessible aria-label="Credential expires in 14 days" />,
+      <Tag
+        label="Expires in 14 days"
+        tone="warning"
+        accessible
+        aria-label="Credential expires in 14 days"
+      />,
     );
     expect(screen.getByLabelText('Credential expires in 14 days')).toBeOnTheScreen();
   });

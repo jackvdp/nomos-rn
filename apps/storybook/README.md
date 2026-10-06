@@ -36,15 +36,15 @@ fonts and the platform `Modal`.
 
 ## Files
 
-| Path | Purpose |
-| --- | --- |
-| `.rnstorybook/main.ts` | On-device config: where stories are, which addons |
-| `.rnstorybook/preview.tsx` | Global decorators and parameters for on-device |
-| `.rnstorybook/index.tsx` | Storybook's root component, which `App.tsx` renders |
-| `.rnstorybook/storybook.requires.ts` | Generated. Metro regenerates it on start, or run `npm run storybook-generate` |
-| `.storybook/` | Browser Storybook config (`@storybook/react-native-web-vite`) |
-| `decorators.tsx` | Wraps every story in `SafeAreaProvider`, `ThemeProvider` and the themed canvas |
-| `metro.config.js` | Expo's default config wrapped in `withStorybook` |
+| Path                                 | Purpose                                                                        |
+| ------------------------------------ | ------------------------------------------------------------------------------ |
+| `.rnstorybook/main.ts`               | On-device config: where stories are, which addons                              |
+| `.rnstorybook/preview.tsx`           | Global decorators and parameters for on-device                                 |
+| `.rnstorybook/index.tsx`             | Storybook's root component, which `App.tsx` renders                            |
+| `.rnstorybook/storybook.requires.ts` | Generated. Metro regenerates it on start, or run `npm run storybook-generate`  |
+| `.storybook/`                        | Browser Storybook config (`@storybook/react-native-web-vite`)                  |
+| `decorators.tsx`                     | Wraps every story in `SafeAreaProvider`, `ThemeProvider` and the themed canvas |
+| `metro.config.js`                    | Expo's default config wrapped in `withStorybook`                               |
 
 Stories that need the whole screen (overlays, `Screen`) set
 `parameters: { fullscreen: true }` to skip the padded scroll canvas.

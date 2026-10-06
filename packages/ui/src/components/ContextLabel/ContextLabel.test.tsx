@@ -4,7 +4,11 @@ import { ContextLabel } from './ContextLabel';
 describe('ContextLabel', () => {
   test('shows the name and the audience', async () => {
     await renderWithTheme(
-      <ContextLabel kind="organisation" name="Northshire Electoral Commission" audience="Members only" />,
+      <ContextLabel
+        kind="organisation"
+        name="Northshire Electoral Commission"
+        audience="Members only"
+      />,
     );
     expect(screen.getByText('Northshire Electoral Commission')).toBeOnTheScreen();
     expect(screen.getByText('Members only')).toBeOnTheScreen();
@@ -29,7 +33,9 @@ describe('ContextLabel', () => {
         kind="workspace"
         name="Polling logistics workspace"
         audience="Members only"
-        formatAccessibilityLabel={({ kind, name, audience }) => `${kinds[kind]}: ${name}. ${audience}`}
+        formatAccessibilityLabel={({ kind, name, audience }) =>
+          `${kinds[kind]}: ${name}. ${audience}`
+        }
       />,
     );
     expect(

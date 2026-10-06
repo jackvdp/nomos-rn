@@ -107,9 +107,7 @@ function AvailabilityForm() {
     <Stack gap="lg">
       <Stack gap="xs">
         <Text variant="headingMd">Confirm your availability</Text>
-        <Text color="secondary">
-          Ward 12, St Mary’s Primary School. Requested by Amara Okafor.
-        </Text>
+        <Text color="secondary">Ward 12, St Mary’s Primary School. Requested by Amara Okafor.</Text>
       </Stack>
       <RadioGroup
         label="Which shift can you work?"

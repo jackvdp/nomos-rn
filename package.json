@@ -9,7 +9,9 @@
     "mobile": "npm run start -w @nomos/mobile",
     "storybook": "npm run start -w @nomos/storybook",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present"
+    "test": "npm run test --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "overrides": {
     "react": "19.2.3",
@@ -17,5 +19,8 @@
     "@storybook/react-native-ui": "10.5.1",
     "@storybook/react-native-ui-common": "10.5.1",
     "@storybook/react-native-theming": "10.5.1"
+  },
+  "devDependencies": {
+    "prettier": "^3.8.1"
   }
 }

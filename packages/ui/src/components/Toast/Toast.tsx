@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { darkTheme, lightTheme, makeStyles, useTheme } from '../../theme';
 import { useReducedMotion } from '../../utils';
-import { toneIcon } from '../Banner/toneIcon';
+import { toneIcon } from '../../utils/toneIcon';
 import { Icon, type IconName } from '../Icon';
 import { Text } from '../Text';
 
@@ -69,7 +69,12 @@ const ToastContext = createContext<ToastApi | null>(null);
  * ThemeProvider and SafeAreaProvider, and call `useToast()` anywhere below.
  * For messages that must stay in view, use a Banner.
  */
-export function ToastProvider({ children, limit = 3, offset = 0, dismissLabel = 'Dismiss' }: ToastProviderProps) {
+export function ToastProvider({
+  children,
+  limit = 3,
+  offset = 0,
+  dismissLabel = 'Dismiss',
+}: ToastProviderProps) {
   const theme = useTheme();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
@@ -79,10 +84,14 @@ export function ToastProvider({ children, limit = 3, offset = 0, dismissLabel = 
   const show = useCallback((options: ToastOptions) => {
     nextId.current += 1;
     const id = `toast-${nextId.current}`;
-    setToasts((list) => [
-      ...list,
-      { tone: 'neutral', duration: DEFAULT_DURATION, ...options, id, leaving: false },
-    ]);
+    const toast: ToastRecord = {
+      ...options,
+      id,
+      tone: options.tone ?? 'neutral',
+      duration: options.duration ?? DEFAULT_DURATION,
+      leaving: false,
+    };
+    setToasts((list) => [...list, toast]);
     return id;
   }, []);
 

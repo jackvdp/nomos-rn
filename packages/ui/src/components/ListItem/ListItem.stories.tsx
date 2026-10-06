@@ -39,7 +39,11 @@ function Surface({ children }: { children: ReactNode }) {
   const theme = useTheme();
   return (
     <View
-      style={{ backgroundColor: theme.colors.bg.surface, borderRadius: theme.radii.lg, overflow: 'hidden' }}
+      style={{
+        backgroundColor: theme.colors.bg.surface,
+        borderRadius: theme.radii.lg,
+        overflow: 'hidden',
+      }}
     >
       {children}
     </View>
@@ -146,7 +150,8 @@ export const DestructiveAndDisabled: Story = {
 
 export const LongText: Story = {
   args: {
-    title: 'Northshire Electoral Commission: returning officer briefing for all polling station staff',
+    title:
+      'Northshire Electoral Commission: returning officer briefing for all polling station staff',
     description:
       'Mandatory for presiding officers. Covers opening procedures, ballot box seals, ' +
       'accessibility support and the close-of-poll checklist.',

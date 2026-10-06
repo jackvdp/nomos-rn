@@ -48,7 +48,14 @@ export function getInitials(name: string): string {
  */
 export function avatarColors(theme: Theme, name: string): ToneColors {
   const { tone, context } = theme.colors;
-  const palette = [tone.brand, tone.info, tone.success, tone.warning, context.workspace, tone.neutral];
+  const palette = [
+    tone.brand,
+    tone.info,
+    tone.success,
+    tone.warning,
+    context.workspace,
+    tone.neutral,
+  ];
   let hash = 0;
   for (const char of name.trim().toLocaleLowerCase()) {
     hash = (hash * 31 + (char.codePointAt(0) ?? 0)) >>> 0;

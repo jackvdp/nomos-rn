@@ -88,7 +88,9 @@ export function RadioGroup<T extends string = string>({
         ) : null}
       </View>
       <RadioGroupContext.Provider value={context}>
-        {options?.map((option) => <Radio key={option.value} {...option} />)}
+        {options?.map((option) => (
+          <Radio key={option.value} {...option} />
+        ))}
         {children}
       </RadioGroupContext.Provider>
       <View style={styles.error} aria-live="polite">
@@ -110,8 +112,10 @@ export function RadioGroup<T extends string = string>({
   );
 }
 
-export interface RadioProps
-  extends Omit<PressableProps, 'children' | 'style' | 'onPress' | 'disabled'> {
+export interface RadioProps extends Omit<
+  PressableProps,
+  'children' | 'style' | 'onPress' | 'disabled'
+> {
   value: string;
   /** Visible text. Also the accessibility label unless you pass one. */
   label: string;

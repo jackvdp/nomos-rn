@@ -22,7 +22,10 @@ const weightName = Object.fromEntries(
 ) as Record<string, FontWeight>;
 
 const samples: Record<TextVariant, { text: string; usage: string }> = {
-  display: { text: '1,284 poll workers', usage: 'One per screen at most: hero numbers, onboarding.' },
+  display: {
+    text: '1,284 poll workers',
+    usage: 'One per screen at most: hero numbers, onboarding.',
+  },
   headingLg: { text: 'Northshire Electoral Commission', usage: 'Screen titles.' },
   headingMd: { text: 'Upcoming training', usage: 'Section headings.' },
   headingSm: { text: 'Poll worker training: Module 3', usage: 'Card and dialog titles.' },
@@ -35,7 +38,10 @@ const samples: Record<TextVariant, { text: string; usage: string }> = {
     usage: 'Default for paragraphs and list rows.',
   },
   bodyStrong: { text: 'Credential expires in 14 days', usage: 'Emphasis inside body text.' },
-  bodySm: { text: 'Amara Okafor shared this with your workplace.', usage: 'Secondary rows and dense lists.' },
+  bodySm: {
+    text: 'Amara Okafor shared this with your workplace.',
+    usage: 'Secondary rows and dense lists.',
+  },
   label: { text: 'Continue', usage: 'Buttons, tabs, field labels.' },
   labelSm: { text: 'See all', usage: 'Small buttons, chips.' },
   caption: { text: 'Updated 5 minutes ago', usage: 'Timestamps, helper text, metadata.' },

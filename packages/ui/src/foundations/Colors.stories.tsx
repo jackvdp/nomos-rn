@@ -19,7 +19,10 @@ const placeholderNote =
   'Brand hexes are placeholders. NOMOS is navy and cyan, but the exact brand values have not been supplied yet; every colour here derives from navy 700 and cyan 500 and will shift when they arrive.';
 
 const groups: { key: keyof ColorTokens; description: string }[] = [
-  { key: 'bg', description: 'Backgrounds, from the canvas behind cards to the scrim behind modals.' },
+  {
+    key: 'bg',
+    description: 'Backgrounds, from the canvas behind cards to the scrim behind modals.',
+  },
   {
     key: 'text',
     description: 'Text and icon colours. Use inverse on bg.inverse and onBrand on bg.brand.',
@@ -30,7 +33,8 @@ const groups: { key: keyof ColorTokens; description: string }[] = [
   { key: 'accent', description: 'Cyan emphasis that is not a status.' },
   {
     key: 'tone',
-    description: 'Status colours for Tag, Badge, Banner and Toast. Always pair with an icon or text.',
+    description:
+      'Status colours for Tag, Badge, Banner and Toast. Always pair with an icon or text.',
   },
   {
     key: 'context',

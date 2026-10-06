@@ -7,7 +7,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 function Canvas({ children, fullscreen }: { children: ReactNode; fullscreen: boolean }) {
   const theme = useTheme();
   if (fullscreen) {
-    return <View style={[styles.fill, { backgroundColor: theme.colors.bg.canvas }]}>{children}</View>;
+    return (
+      <View style={[styles.fill, { backgroundColor: theme.colors.bg.canvas }]}>{children}</View>
+    );
   }
   return (
     <ScrollView

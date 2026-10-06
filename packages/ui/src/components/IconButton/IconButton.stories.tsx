@@ -82,7 +82,13 @@ export const WithBadge: Story = {
     <Stack direction="row" gap="lg">
       <IconButton {...args} icon="bell" aria-label="Notifications" badge={3} />
       <IconButton {...args} icon="chats" aria-label="Messages" badge={12} />
-      <IconButton {...args} variant="secondary" icon="bell" aria-label="Notifications" badge={120} />
+      <IconButton
+        {...args}
+        variant="secondary"
+        icon="bell"
+        aria-label="Notifications"
+        badge={120}
+      />
     </Stack>
   ),
 };

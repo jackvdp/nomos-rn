@@ -23,8 +23,10 @@ export interface TextFieldAction {
   onPress: () => void;
 }
 
-export interface TextFieldProps
-  extends Omit<TextInputProps, 'style' | 'editable' | 'placeholderTextColor' | 'value'> {
+export interface TextFieldProps extends Omit<
+  TextInputProps,
+  'style' | 'editable' | 'placeholderTextColor' | 'value'
+> {
   /** Visible label above the field. Also the input's accessibility label. */
   label: string;
   value: string;
@@ -115,7 +117,11 @@ export function TextField({
         aria-hidden
       >
         {label}
-        {required ? <Text variant="label" color="danger">{' *'}</Text> : null}
+        {required ? (
+          <Text variant="label" color="danger">
+            {' *'}
+          </Text>
+        ) : null}
       </Text>
       <View
         style={[

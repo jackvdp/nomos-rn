@@ -51,7 +51,8 @@ export function ProgressBar({
   const reducedMotion = useReducedMotion();
   const colors = theme.colors.tone[tone];
   const percent = Math.round(Math.min(1, Math.max(0, Number.isFinite(value) ? value : 0)) * 100);
-  const shownValue = indeterminate ? undefined : (valueText ?? (showValue ? `${percent}%` : undefined));
+  const percentText = showValue ? `${percent}%` : undefined;
+  const shownValue = indeterminate ? undefined : (valueText ?? percentText);
 
   const [trackWidth, setTrackWidth] = useState(0);
   const [sweep] = useState(() => new Animated.Value(0));
@@ -120,7 +121,8 @@ export function ProgressBar({
             <View
               style={[
                 styles.fill,
-                { width: '100%', backgroundColor: colors.onSubtle, opacity: theme.opacity.disabled },
+                styles.resting,
+                { backgroundColor: colors.onSubtle, opacity: theme.opacity.disabled },
               ]}
             />
           )
@@ -154,6 +156,10 @@ const useStyles = makeStyles((t) => ({
   fill: {
     height: '100%',
     borderRadius: t.radii.full,
+  },
+  // Reduced motion: a still, faded full bar instead of the sweep.
+  resting: {
+    width: '100%',
   },
   segment: {
     position: 'absolute',

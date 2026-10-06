@@ -40,11 +40,12 @@ export interface AvatarProps extends Omit<ViewProps, 'children' | 'style'> {
   style?: StyleProp<ViewStyle>;
 }
 
+// About 30% of the avatar, so the shield sits in the corner clear of the initials.
 const badgeIconSize = {
   xs: 'xs',
   sm: 'xs',
-  md: 'sm',
-  lg: 'md',
+  md: 'xs',
+  lg: 'sm',
   xl: 'lg',
 } as const satisfies Record<AvatarSize, IconSize>;
 

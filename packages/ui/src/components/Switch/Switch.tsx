@@ -15,8 +15,10 @@ import { useReducedMotion } from '../../utils';
 import { Icon } from '../Icon';
 import { Text } from '../Text';
 
-export interface SwitchProps
-  extends Omit<PressableProps, 'children' | 'style' | 'onPress' | 'disabled'> {
+export interface SwitchProps extends Omit<
+  PressableProps,
+  'children' | 'style' | 'onPress' | 'disabled'
+> {
   /** Visible text. Also the accessibility label unless you pass one. */
   label: string;
   /** Secondary text under the label, read to screen readers as a hint. */

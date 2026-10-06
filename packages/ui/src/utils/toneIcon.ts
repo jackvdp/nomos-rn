@@ -1,6 +1,6 @@
 import type { Tone } from '@nomos/tokens';
 
-import type { IconName } from '../Icon';
+import type { IconName } from '../components/Icon';
 
 /** Default icon per tone, shared by Banner and Toast so colour is never the only signal. */
 export const toneIcon: Record<Tone, IconName> = {

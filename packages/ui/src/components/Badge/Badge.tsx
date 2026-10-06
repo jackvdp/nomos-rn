@@ -27,7 +27,8 @@ export interface BadgeProps extends Omit<ViewProps, 'children'> {
   'aria-label'?: string;
 }
 
-const defaultFormatCount = (count: number, max: number) => (count > max ? `${max}+` : String(count));
+const defaultFormatCount = (count: number, max: number) =>
+  count > max ? `${max}+` : String(count);
 
 /**
  * A count or dot for unread items and notifications. Place it next to a

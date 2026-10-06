@@ -5,7 +5,7 @@ import { makeStyles } from '../../theme';
 import { useReducedMotion } from '../../utils';
 import { Button, type ButtonVariant } from '../Button';
 import { Text } from '../Text';
-import { focusForAccessibility, useOverlayTransition } from './useOverlayTransition';
+import { focusForAccessibility, useOverlayTransition } from '../../utils/useOverlayTransition';
 
 export interface DialogAction {
   label: string;
@@ -46,7 +46,7 @@ export interface DialogProps {
 
 const MAX_WIDTH = 400;
 const ENTER_SCALE = 0.95;
-/** Combined label length beyond which a pair of actions no longer fits side by side on a small phone. */
+/** Total label length past which two actions no longer fit side by side on a small phone. */
 const LONG_LABELS = 24;
 
 /**
@@ -77,6 +77,7 @@ export function Dialog({
   };
   const labelLength = actions.reduce((total, action) => total + action.label.length, 0);
   const stacked = stackActions ?? (actions.length > 2 || labelLength > LONG_LABELS);
+  const scale = progress.interpolate({ inputRange: [0, 1], outputRange: [ENTER_SCALE, 1] });
   const lastIndex = actions.length - 1;
   const buttons = actions.map((action, index) => (
     <Button
@@ -119,9 +120,7 @@ export function Dialog({
             styles.dialog,
             {
               opacity: progress,
-              transform: reducedMotion
-                ? []
-                : [{ scale: progress.interpolate({ inputRange: [0, 1], outputRange: [ENTER_SCALE, 1] }) }],
+              transform: reducedMotion ? [] : [{ scale }],
             },
           ]}
         >

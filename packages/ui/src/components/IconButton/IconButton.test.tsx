@@ -16,7 +16,9 @@ describe('IconButton', () => {
 
   test('does not call onPress when disabled', async () => {
     const onPress = jest.fn();
-    await renderWithTheme(<IconButton icon="share" aria-label="Share" onPress={onPress} disabled />);
+    await renderWithTheme(
+      <IconButton icon="share" aria-label="Share" onPress={onPress} disabled />,
+    );
     const button = screen.getByRole('button', { name: 'Share' });
     await userEvent.press(button);
     expect(onPress).not.toHaveBeenCalled();

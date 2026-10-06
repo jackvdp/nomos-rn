@@ -15,12 +15,15 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-const levels: { shadow: Exclude<keyof ShadowTokens, 'none'>; surface: 'surface' | 'raised'; usage: string }[] =
-  [
-    { shadow: 'sm', surface: 'surface', usage: 'Cards and list groups resting on the canvas.' },
-    { shadow: 'md', surface: 'raised', usage: 'Menus, popovers and sticky bars.' },
-    { shadow: 'lg', surface: 'raised', usage: 'Sheets, dialogs and toasts above the page.' },
-  ];
+const levels: {
+  shadow: Exclude<keyof ShadowTokens, 'none'>;
+  surface: 'surface' | 'raised';
+  usage: string;
+}[] = [
+  { shadow: 'sm', surface: 'surface', usage: 'Cards and list groups resting on the canvas.' },
+  { shadow: 'md', surface: 'raised', usage: 'Menus, popovers and sticky bars.' },
+  { shadow: 'lg', surface: 'raised', usage: 'Sheets, dialogs and toasts above the page.' },
+];
 
 function Shadows() {
   const theme = useTheme();

@@ -25,7 +25,9 @@ describe('Icon', () => {
         <Icon name="bell" size={30} testID="dp" />
       </>,
     );
-    expect(screen.getByTestId('scale', { includeHiddenElements: true })).toHaveStyle({ fontSize: 24 });
+    expect(screen.getByTestId('scale', { includeHiddenElements: true })).toHaveStyle({
+      fontSize: 24,
+    });
     expect(screen.getByTestId('dp', { includeHiddenElements: true })).toHaveStyle({ fontSize: 30 });
   });
 
