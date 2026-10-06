@@ -6,6 +6,7 @@
 import { composeStories } from '@storybook/react';
 import fs from 'node:fs';
 import path from 'node:path';
+import type { ComponentType } from 'react';
 
 import { renderWithTheme } from './test-utils';
 
@@ -25,7 +26,7 @@ test('finds story files', () => {
 
 describe.each(storyFiles.map((file) => [path.relative(__dirname, file), file]))('%s', (_name, file) => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const stories = composeStories(require(file));
+  const stories = composeStories(require(file)) as Record<string, ComponentType>;
   const cases = Object.entries(stories).flatMap(([storyName, Story]) =>
     (['light', 'dark'] as const).map((scheme) => ({ storyName, scheme, Story })),
   );

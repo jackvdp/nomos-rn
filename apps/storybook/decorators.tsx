@@ -2,6 +2,7 @@ import { ThemeProvider, useTheme, type ColorSchemePreference } from '@nomos/ui';
 import type { Decorator } from '@storybook/react-native';
 import type { ReactNode } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 function Canvas({ children, fullscreen }: { children: ReactNode; fullscreen: boolean }) {
   const theme = useTheme();
@@ -30,11 +31,13 @@ export const withNomosTheme: Decorator = (Story, context) => {
   const scheme: ColorSchemePreference =
     context.globals?.theme ?? context.parameters?.colorScheme ?? 'system';
   return (
-    <ThemeProvider colorScheme={scheme}>
-      <Canvas fullscreen={context.parameters?.fullscreen === true}>
-        <Story />
-      </Canvas>
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider colorScheme={scheme}>
+        <Canvas fullscreen={context.parameters?.fullscreen === true}>
+          <Story />
+        </Canvas>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 };
 

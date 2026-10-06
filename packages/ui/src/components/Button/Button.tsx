@@ -9,7 +9,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { makeStyles, useTheme } from '../../theme';
+import { makeStyles, useTheme, type Theme } from '../../theme';
 import { Icon, type IconName } from '../Icon';
 import { Text } from '../Text';
 
@@ -39,6 +39,14 @@ export interface ButtonProps extends Omit<PressableProps, 'children' | 'style'> 
 
 const paddingBySize = { sm: 12, md: 16, lg: 20 } as const;
 
+// A disabled text-only button stays unfilled so it doesn't read as a filled button.
+function disabledColors(theme: Theme, variant: ButtonVariant) {
+  const { disabled } = theme.colors.action;
+  return variant === 'tertiary'
+    ? { ...disabled, bg: 'transparent', border: 'transparent' }
+    : disabled;
+}
+
 export function Button({
   label,
   variant = 'primary',
@@ -56,7 +64,7 @@ export function Button({
   const theme = useTheme();
   const styles = useStyles();
   const inactive = disabled || loading;
-  const colors = disabled ? theme.colors.action.disabled : theme.colors.action[variant];
+  const colors = disabled ? disabledColors(theme, variant) : theme.colors.action[variant];
   const height = theme.sizes.control[size];
   const iconSize = size === 'lg' ? 'lg' : 'md';
   // Small buttons stay small visually but keep a full-size touch area.
