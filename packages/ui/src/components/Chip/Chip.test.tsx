@@ -35,7 +35,12 @@ describe('Chip', () => {
     const onPress = jest.fn();
     const onRemove = jest.fn();
     await renderWithTheme(
-      <Chip label="Amara Okafor" onPress={onPress} onRemove={onRemove} removeLabel="Remove Amara Okafor" />,
+      <Chip
+        label="Amara Okafor"
+        onPress={onPress}
+        onRemove={onRemove}
+        removeLabel="Remove Amara Okafor"
+      />,
     );
     await userEvent.press(screen.getByRole('button', { name: 'Remove Amara Okafor' }));
     expect(onRemove).toHaveBeenCalledTimes(1);
@@ -45,7 +50,9 @@ describe('Chip', () => {
   test('ignores presses when disabled', async () => {
     const onPress = jest.fn();
     const onRemove = jest.fn();
-    await renderWithTheme(<Chip label="Following" onPress={onPress} onRemove={onRemove} disabled />);
+    await renderWithTheme(
+      <Chip label="Following" onPress={onPress} onRemove={onRemove} disabled />,
+    );
     const chip = screen.getByRole('checkbox', { name: 'Following' });
     await userEvent.press(chip);
     await userEvent.press(screen.getByRole('button', { name: 'Remove' }));

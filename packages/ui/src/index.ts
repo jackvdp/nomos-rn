@@ -13,6 +13,15 @@ export * from './components/Button';
 export * from './components/IconButton';
 export * from './components/TextLink';
 
+// Forms
+export * from './components/TextField';
+export * from './components/SearchField';
+export * from './components/Checkbox';
+export * from './components/RadioGroup';
+export * from './components/Switch';
+export * from './components/SegmentedControl';
+export * from './components/Chip';
+
 // Display
 export * from './components/Avatar';
 export * from './components/Badge';

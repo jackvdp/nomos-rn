@@ -46,7 +46,7 @@ export function Checkbox({
   const boxBorder = on
     ? theme.colors.control.checked
     : errorText
-      ? theme.colors.tone.danger.solid
+      ? theme.colors.border.danger
       : theme.colors.border.strong;
 
   return (
@@ -108,7 +108,7 @@ export function Checkbox({
   );
 }
 
-/** Joins hint sentences, adding a full stop where one is missing so screen readers pause between them. */
+/** Joins hint sentences, adding a full stop where one is missing so screen readers pause. */
 function joinHints(...parts: (string | undefined)[]): string | undefined {
   const sentences = parts.filter((part): part is string => Boolean(part));
   if (sentences.length === 0) return undefined;

@@ -29,6 +29,7 @@ function pairsFor({ colors: c }: { colors: ColorTokens }): Pair[] {
     { name: 'text.onBrand on bg.brand', fg: c.text.onBrand, bg: c.bg.brand, min: AA_TEXT },
     { name: 'text.inverse on bg.inverse', fg: c.text.inverse, bg: c.bg.inverse, min: AA_TEXT },
     { name: 'border.strong on bg.surface', fg: c.border.strong, bg: c.bg.surface, min: AA_NON_TEXT },
+    { name: 'border.danger on bg.surface', fg: c.border.danger, bg: c.bg.surface, min: AA_NON_TEXT },
     { name: 'control.checked on bg.surface', fg: c.control.checked, bg: c.bg.surface, min: AA_NON_TEXT },
     { name: 'control.onChecked on control.checked', fg: c.control.onChecked, bg: c.control.checked, min: AA_NON_TEXT },
     { name: 'accent.onSolid on accent.solid', fg: c.accent.onSolid, bg: c.accent.solid, min: AA_TEXT },

@@ -11,7 +11,9 @@ function Controlled(props: Omit<TextFieldProps, 'value'> & { initial?: string })
 
 describe('TextField', () => {
   test('is labelled by its visible label and accepts typing', async () => {
-    await renderWithTheme(<Controlled label="Work email" helperText="Use your commission address." />);
+    await renderWithTheme(
+      <Controlled label="Work email" helperText="Use your commission address." />,
+    );
     const input = screen.getByLabelText('Work email');
 
     await userEvent.type(input, 'amara@northshire.gov');

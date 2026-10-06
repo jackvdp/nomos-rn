@@ -127,7 +127,9 @@ function EventTypeFilters() {
             selected={selected.includes(type)}
             onPress={() =>
               setSelected((current) =>
-                current.includes(type) ? current.filter((item) => item !== type) : [...current, type],
+                current.includes(type)
+                  ? current.filter((item) => item !== type)
+                  : [...current, type],
               )
             }
           />

@@ -94,7 +94,12 @@ export function RadioGroup<T extends string = string>({
       <View style={styles.error} aria-live="polite">
         {errorText ? (
           <>
-            <Icon name="error" size="sm" color={theme.colors.text.danger} style={styles.errorIcon} />
+            <Icon
+              name="error"
+              size="sm"
+              color={theme.colors.text.danger}
+              style={styles.errorIcon}
+            />
             <Text variant="bodySm" color="danger" style={styles.errorText}>
               {errorText}
             </Text>

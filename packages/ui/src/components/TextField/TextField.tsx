@@ -99,7 +99,7 @@ export function TextField({
   const ringColor = focused
     ? theme.colors.border.focus
     : invalid
-      ? theme.colors.tone.danger.solid
+      ? theme.colors.border.danger
       : undefined;
   const iconColor = disabled ? theme.colors.text.disabled : theme.colors.text.secondary;
   const counting = maxLength !== undefined && showCount;
@@ -254,7 +254,7 @@ function useAnnounceError(errorText: string | undefined) {
   }, [errorText]);
 }
 
-/** Joins hint sentences, adding a full stop where one is missing so screen readers pause between them. */
+/** Joins hint sentences, adding a full stop where one is missing so screen readers pause. */
 function joinHints(...parts: (string | undefined)[]): string | undefined {
   const sentences = parts.filter((part): part is string => Boolean(part));
   if (sentences.length === 0) return undefined;

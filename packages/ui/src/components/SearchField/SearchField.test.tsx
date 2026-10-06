@@ -38,7 +38,12 @@ describe('SearchField', () => {
 
   test('uses a custom clear label and hides the button when disabled', async () => {
     const { rerender } = await renderWithTheme(
-      <SearchField label="Search posts" value="ballot" onChangeText={() => {}} clearLabel="Effacer" />,
+      <SearchField
+        label="Search posts"
+        value="ballot"
+        onChangeText={() => {}}
+        clearLabel="Effacer"
+      />,
     );
     expect(screen.getByRole('button', { name: 'Effacer' })).toBeOnTheScreen();
 

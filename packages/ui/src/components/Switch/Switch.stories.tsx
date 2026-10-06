@@ -80,7 +80,11 @@ function NotificationSettings() {
         value={settings.shifts}
         onValueChange={toggle('shifts')}
       />
-      <Switch label="Direct messages" value={settings.messages} onValueChange={toggle('messages')} />
+      <Switch
+        label="Direct messages"
+        value={settings.messages}
+        onValueChange={toggle('messages')}
+      />
       <Switch
         label="Training reminders"
         description="For example, “Poll worker training: Module 3 is due Friday”."

@@ -37,6 +37,8 @@ const meta = {
     multiline: false,
   },
   argTypes: {
+    helperText: { control: 'text' },
+    errorText: { control: 'text' },
     leadingIcon: { control: 'select', options: [undefined, 'mail', 'person', 'lock', 'search'] },
     maxLength: { control: 'number' },
     onChangeText: { action: 'changed' },
@@ -53,7 +55,12 @@ export const Playground: Story = {};
 export const States: Story = {
   render: (args) => (
     <Stack gap="lg">
-      <ControlledTextField {...args} label="Full name" helperText={undefined} placeholder="As on your ID" />
+      <ControlledTextField
+        {...args}
+        label="Full name"
+        helperText={undefined}
+        placeholder="As on your ID"
+      />
       <ControlledTextField
         {...args}
         label="Staff number"

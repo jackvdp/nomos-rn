@@ -55,7 +55,13 @@ describe('RadioGroup', () => {
     expect(onChange).not.toHaveBeenCalled();
 
     await rerender(
-      <RadioGroup label="Your role" value="presiding" onChange={onChange} options={roles} disabled />,
+      <RadioGroup
+        label="Your role"
+        value="presiding"
+        onChange={onChange}
+        options={roles}
+        disabled
+      />,
     );
     await userEvent.press(screen.getByRole('radio', { name: 'Poll clerk' }));
     expect(onChange).not.toHaveBeenCalled();

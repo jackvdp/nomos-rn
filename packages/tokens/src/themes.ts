@@ -70,6 +70,8 @@ export interface ColorTokens {
     /** Input outlines. Meets 3:1 against surface for non-text contrast. */
     strong: string;
     focus: string;
+    /** Invalid inputs and controls. Meets 3:1 against surface. */
+    danger: string;
   };
   action: {
     primary: ActionColors;
@@ -136,6 +138,7 @@ export const light: ThemeTokens = {
       default: slate[200],
       strong: slate[500],
       focus: cyan[500],
+      danger: red[600],
     },
     action: {
       primary: { bg: navy[700], bgPressed: navy[800], fg: white, border: navy[700] },
@@ -202,6 +205,7 @@ export const dark: ThemeTokens = {
       default: navy[700],
       strong: slate[500],
       focus: cyan[300],
+      danger: red[400],
     },
     action: {
       primary: { bg: cyan[400], bgPressed: cyan[300], fg: navy[950], border: cyan[400] },

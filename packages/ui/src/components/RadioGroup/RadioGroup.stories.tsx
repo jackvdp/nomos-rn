@@ -71,7 +71,12 @@ export const States: Story = {
         label="One option unavailable"
         options={[
           ...roles.slice(0, 2),
-          { value: 'counting', label: 'Counting assistant', description: 'Training required', disabled: true },
+          {
+            value: 'counting',
+            label: 'Counting assistant',
+            description: 'Training required',
+            disabled: true,
+          },
         ]}
       />
       <ControlledRadioGroup {...args} label="Whole group disabled" disabled />
@@ -102,7 +107,9 @@ function AvailabilityForm() {
     <Stack gap="lg">
       <Stack gap="xs">
         <Text variant="headingMd">Confirm your availability</Text>
-        <Text color="secondary">Ward 12, St Mary’s Primary School. Requested by Amara Okafor.</Text>
+        <Text color="secondary">
+          Ward 12, St Mary’s Primary School. Requested by Amara Okafor.
+        </Text>
       </Stack>
       <RadioGroup
         label="Which shift can you work?"

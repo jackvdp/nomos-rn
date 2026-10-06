@@ -54,9 +54,10 @@ export function Chip({
 }: ChipProps) {
   const theme = useTheme();
   const styles = useStyles();
+  const { accent, bg, text, border } = theme.colors;
   const colors = selected
-    ? { bg: theme.colors.accent.subtle, fg: theme.colors.accent.onSubtle, border: theme.colors.accent.border }
-    : { bg: theme.colors.bg.surface, fg: theme.colors.text.primary, border: theme.colors.border.strong };
+    ? { bg: accent.subtle, fg: accent.onSubtle, border: accent.border }
+    : { bg: bg.surface, fg: text.primary, border: border.strong };
   const icon = selected ? 'check' : leadingIcon;
   const slop = (theme.sizes.touchTarget - theme.sizes.control.sm) / 2;
 
