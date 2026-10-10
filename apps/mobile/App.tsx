@@ -1,13 +1,20 @@
 import { Button, Screen, Stack, Text, ThemeProvider, ToastProvider, useToast } from '@nomos/ui';
 import { StatusBar } from 'expo-status-bar';
+import { useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { LoginScreen } from './src/auth/LoginScreen';
+import type { Session } from './src/auth/login';
+
 export default function App() {
+  // Held in memory only for now, so reloading the app signs you out.
+  const [session, setSession] = useState<Session | null>(null);
+
   return (
     <SafeAreaProvider>
       <ThemeProvider>
         <ToastProvider>
-          <Home />
+          {session ? <Home /> : <LoginScreen onSignedIn={setSession} />}
           <StatusBar style="auto" />
         </ToastProvider>
       </ThemeProvider>
