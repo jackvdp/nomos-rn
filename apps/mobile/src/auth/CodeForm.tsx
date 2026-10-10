@@ -30,9 +30,11 @@ export interface CodeFormProps {
   email: string;
   /** Go back to the email and password. */
   onBack: () => void;
+  /** An attempt was turned down: the code was missing or was not accepted. */
+  onRejected?: () => void;
 }
 
-export function CodeForm({ email, onBack }: CodeFormProps) {
+export function CodeForm({ email, onBack, onRejected }: CodeFormProps) {
   const auth = useAuth();
   const codeRef = useRef<TextInput>(null);
   const [code, setCode] = useState('');
@@ -47,6 +49,7 @@ export function CodeForm({ email, onBack }: CodeFormProps) {
     if (!entered) {
       setCodeError(copy.codeRequired);
       codeRef.current?.focus();
+      onRejected?.();
       return;
     }
 
@@ -56,6 +59,7 @@ export function CodeForm({ email, onBack }: CodeFormProps) {
       await auth.verifyCode(email, entered);
     } catch (error) {
       setNotice({ tone: 'danger', message: failureMessage(error, copy.failed) });
+      onRejected?.();
     } finally {
       setBusy(undefined);
     }

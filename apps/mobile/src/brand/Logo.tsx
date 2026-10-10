@@ -5,6 +5,11 @@ const source = require('../../assets/nomos-logo-on-dark.png');
 const label = 'NOMOS';
 
 export const logoAspectRatio = 1888 / 427;
+/**
+ * The logo's width at the top of the onboarding and sign-in screens. Both put
+ * it in the same place, so it holds still as one gives way to the other.
+ */
+export const headerLogoWidth = 128;
 
 export interface LogoProps {
   width: number;

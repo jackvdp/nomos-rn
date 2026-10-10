@@ -1,7 +1,6 @@
 import { Button, makeStyles, Screen, Stack, Text, useReducedMotion, useTheme } from '@nomos/ui';
 import { StatusBar } from 'expo-status-bar';
-import LottieView from 'lottie-react-native';
-import { useEffect, useEffectEvent, useRef, useState, type ComponentProps } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
 import {
   StyleSheet,
   useWindowDimensions,
@@ -26,7 +25,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { bandShare, BrandBand } from '../brand/BrandBand';
-import { Logo, logoAspectRatio } from '../brand/Logo';
+import { Drawing } from '../brand/Drawing';
+import { headerLogoWidth, Logo, logoAspectRatio } from '../brand/Logo';
 
 // The screen's wording in one place, ready to move into translations.
 const copy = {
@@ -36,7 +36,7 @@ const copy = {
   position: (page: number, count: number) => `Page ${page} of ${count}`,
 };
 
-// Each drawing is a Lottie file that draws itself once and holds its last frame.
+// Each page has a drawing: a Lottie file that draws itself once.
 const pages = [
   {
     key: 'passport',
@@ -57,10 +57,7 @@ const pages = [
     body: 'Find verified colleagues, join communities and learn together across the NOMOS Network.',
   },
 ];
-// The last frame of every drawing.
-const drawingEnd = 150;
 
-const logoWidth = 128;
 const drawingMaxSize = 300;
 // Keep the words and the buttons a comfortable width on a tablet.
 const wordsMaxWidth = 440;
@@ -103,7 +100,7 @@ export function OnboardingScreen({ hidden, onSignIn, onHidden, onShown }: Onboar
   const last = current === pages.length - 1;
 
   const bandHeight = height * bandShare.onboarding;
-  const logoAreaHeight = theme.space.lg + logoWidth / logoAspectRatio + theme.space.md;
+  const logoAreaHeight = theme.space.lg + headerLogoWidth / logoAspectRatio + theme.space.md;
   // The drawings get what is left of the band under the logo.
   const drawingAreaHeight = Math.max(0, bandHeight - insets.top - logoAreaHeight);
   const drawingSize = Math.min(
@@ -151,7 +148,7 @@ export function OnboardingScreen({ hidden, onSignIn, onHidden, onShown }: Onboar
         }
       >
         <View style={[styles.logo, { height: logoAreaHeight }]}>
-          <Logo width={logoWidth} />
+          <Logo width={headerLogoWidth} />
         </View>
         <Animated.ScrollView
           ref={pager}
@@ -311,39 +308,6 @@ function Actions({ position, last, onNext, onSignIn }: ActionsProps) {
         </Animated.View>
       </Animated.View>
     </View>
-  );
-}
-
-interface DrawingProps {
-  source: ComponentProps<typeof LottieView>['source'];
-  /** Width and height. */
-  size: number;
-  /** The drawing plays from the start each time this becomes true. */
-  playing: boolean;
-}
-
-function Drawing({ source, size, playing }: DrawingProps) {
-  const reducedMotion = useReducedMotion();
-  const lottie = useRef<LottieView>(null);
-
-  useEffect(() => {
-    if (!playing) return;
-    if (reducedMotion) {
-      lottie.current?.pause();
-    } else {
-      lottie.current?.play(0, drawingEnd);
-    }
-  }, [playing, reducedMotion]);
-
-  return (
-    <LottieView
-      ref={lottie}
-      source={source}
-      loop={false}
-      // With reduced motion the finished drawing shows from the start.
-      progress={reducedMotion ? 1 : undefined}
-      style={{ width: size, height: size }}
-    />
   );
 }
 

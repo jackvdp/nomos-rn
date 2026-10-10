@@ -31,9 +31,11 @@ interface FieldErrors {
 export interface CredentialsFormProps {
   /** The password was right and a one-time code has been emailed to `email`. */
   onNeedsCode: (email: string) => void;
+  /** An attempt was turned down: a field was missing or wrong, or sign-in failed. */
+  onRejected?: () => void;
 }
 
-export function CredentialsForm({ onNeedsCode }: CredentialsFormProps) {
+export function CredentialsForm({ onNeedsCode, onRejected }: CredentialsFormProps) {
   const auth = useAuth();
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
@@ -63,6 +65,7 @@ export function CredentialsForm({ onNeedsCode }: CredentialsFormProps) {
     setFailure(undefined);
     if (found.email || found.password) {
       (found.email ? emailRef : passwordRef).current?.focus();
+      onRejected?.();
       return;
     }
 
@@ -78,6 +81,7 @@ export function CredentialsForm({ onNeedsCode }: CredentialsFormProps) {
       }
     } catch (error) {
       setFailure(failureMessage(error, copy.failed));
+      onRejected?.();
     } finally {
       setSubmitting(false);
     }
