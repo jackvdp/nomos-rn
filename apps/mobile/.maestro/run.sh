@@ -42,9 +42,9 @@ curl -sf -o /dev/null "http://$dev_server/status" || fail 'start the dev server 
 container="$(xcrun simctl get_app_container "$udid" "$expo_go" data 2>/dev/null)" ||
   fail "open the app in Expo Go on the $device simulator once first."
 
-# Three things would otherwise differ from run to run or from one machine to the
-# next: the clock, the light or dark setting, and Expo Go's floating tools
-# button. Each is fixed for the run and put back afterwards.
+# Two things would otherwise differ from one machine to the next: the light or
+# dark setting and Expo Go's floating tools button. Both are set for the run and
+# put back afterwards.
 prefs="$container/Library/Preferences/$expo_go"
 tools_button='EXDevMenuShowFloatingActionButton'
 tools_button_before="$(xcrun simctl spawn "$udid" defaults read "$prefs" "$tools_button" 2>/dev/null || echo unset)"
@@ -52,7 +52,6 @@ appearance_before="$(xcrun simctl ui "$udid" appearance)"
 
 restore() {
   xcrun simctl terminate "$udid" "$expo_go" 2>/dev/null || true
-  xcrun simctl status_bar "$udid" clear || true
   xcrun simctl ui "$udid" appearance "$appearance_before" || true
   case "$tools_button_before" in
     unset) xcrun simctl spawn "$udid" defaults delete "$prefs" "$tools_button" || true ;;
@@ -65,8 +64,6 @@ restore() {
 trap restore EXIT
 
 xcrun simctl terminate "$udid" "$expo_go" 2>/dev/null || true
-xcrun simctl status_bar "$udid" override --time '9:41' --batteryState charged --batteryLevel 100 \
-  --wifiBars 3 --cellularBars 4
 xcrun simctl spawn "$udid" defaults write "$prefs" "$tools_button" -bool NO
 
 output="$(mktemp -d)"

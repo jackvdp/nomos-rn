@@ -81,12 +81,12 @@ How it works:
 
 - [Maestro](https://maestro.dev) drives the simulator. The steps are in
   `apps/mobile/.maestro/sign-in.yaml`.
-- `apps/mobile/.maestro/run.sh` fixes what would otherwise change between
-  runs: it pins the clock, sets light or dark mode, and hides Expo Go's
-  floating tools button. It puts all three back when it finishes.
-- Each screenshot is cropped to the app's own content. The status bar and
-  home indicator are left out, because iOS draws them differently from one
-  moment to the next.
+- `apps/mobile/.maestro/run.sh` sets what would otherwise differ between
+  machines: light or dark mode, and Expo Go's floating tools button, which it
+  hides. It puts both back when it finishes.
+- Each screenshot is cropped to the safe area, so it includes the screen's
+  padding but not the status bar or home indicator, which iOS draws
+  differently from one moment to the next.
 - The reference images are stored with Git LFS.
 
 It covers only the first screen. The states that follow a sign-in attempt need

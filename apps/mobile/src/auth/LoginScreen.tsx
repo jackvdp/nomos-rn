@@ -17,9 +17,9 @@ const logoAspectRatio = 1888 / 427;
 const logoMaxWidth = 400;
 const logoLabel = 'NOMOS';
 const screenPadding = 'lg';
-// The visual regression test screenshots the view with this id: the whole
-// screen apart from the status bar and home indicator.
-const contentTestID = 'sign-in-screen';
+// The visual regression test screenshots the view with this id. It covers the
+// safe area: the whole screen apart from the status bar and home indicator.
+const safeAreaTestID = 'sign-in-screen';
 // Space around the logo, on top of the screen's own padding. `bottom` is the
 // least there can be between the logo and the form.
 const logoPadding = { horizontal: 'lg', top: 'xxxl', bottom: 'lg' } as const;
@@ -39,8 +39,9 @@ export function LoginScreen() {
   const [codeSentTo, setCodeSentTo] = useState<string>();
 
   return (
-    <Screen scroll padding={screenPadding}>
-      <View testID={contentTestID} style={styles.content}>
+    // The padding is on the view inside, so that the screenshot includes it.
+    <Screen scroll padding="none">
+      <View testID={safeAreaTestID} style={styles.safeArea}>
         {/*
           The form is centred on the screen, not in the space left under the
           logo. The areas above and below it start at the same height, enough
@@ -74,8 +75,9 @@ export function LoginScreen() {
 }
 
 const useStyles = makeStyles((t) => ({
-  content: {
+  safeArea: {
     flexGrow: 1,
+    padding: t.space[screenPadding],
   },
   above: {
     flexGrow: 1,
