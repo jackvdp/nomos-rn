@@ -9,12 +9,17 @@ import {
   useToast,
 } from '@nomos/ui';
 import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useAuth } from './src/auth/useAuth';
 import { SignedOut } from './src/SignedOut';
+
+// The splash screen would otherwise go as soon as the app starts, leaving a
+// blank screen until the fonts are in.
+SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const { session } = useAuth();
@@ -22,10 +27,17 @@ export default function App() {
   // Whether the onboarding pages have been seen. Like the session, this is
   // held in memory only for now, so they show again each time the app starts.
   const [onboarded, setOnboarded] = useState(false);
-
   // Text drawn before its font is ready would show in the wrong typeface. If
   // loading fails, carry on with the platform's own font.
-  if (!fontsLoaded && !fontsError) {
+  const ready = fontsLoaded || fontsError !== null;
+
+  useEffect(() => {
+    if (ready) {
+      SplashScreen.hide();
+    }
+  }, [ready]);
+
+  if (!ready) {
     return null;
   }
 
