@@ -18,7 +18,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { makeStyles, useTheme } from '../../theme';
+import { makeStyles, useTheme, type Theme } from '../../theme';
 import { useReducedMotion } from '../../utils';
 import { Icon, type IconName } from '../Icon';
 import { Text } from '../Text';
@@ -76,6 +76,10 @@ const { body, caption } = textVariants;
 // The label shrinks to caption size when it moves up.
 const raisedLabelScale = caption.fontSize / body.fontSize;
 const raisedLabelHeight = body.lineHeight * raisedLabelScale;
+// iOS draws text at the bottom of its line, not in the middle. A typeface's
+// own line is about 1.2 times its size, so in a taller line the text sits low
+// by half the difference.
+const iosTextSag = Platform.OS === 'ios' ? (body.lineHeight - 1.2 * body.fontSize) / 2 : 0;
 // How far the glow reaches round a focused field, and how strong it is.
 const haloSpread = 4;
 const haloOpacity = 0.2;
@@ -206,9 +210,7 @@ export function TextField({
                   // As tall as its lines, on top of the padding that holds the label.
                   {
                     minHeight:
-                      numberOfLines * body.lineHeight +
-                      raisedLabelHeight +
-                      2 * fieldEdge(theme.sizes.control.lg),
+                      numberOfLines * body.lineHeight + raisedLabelHeight + 2 * fieldEdge(theme),
                   },
                 ],
                 { color: disabled ? theme.colors.text.disabled : theme.colors.text.primary },
@@ -298,11 +300,11 @@ function useFieldMotion(raised: boolean, focused: boolean, multiline: boolean) {
   const glow = useSharedValue(focused ? 1 : 0);
   const duration = reducedMotion ? 0 : theme.duration.fast;
   const [x1, y1, x2, y2] = theme.easing.standard;
-  // How far below its raised place the label rests: on the first line of a
-  // multiline field, and in the middle of a single-line one.
-  const drop = multiline
-    ? raisedLabelHeight
-    : (theme.sizes.control.lg - body.lineHeight) / 2 - fieldEdge(theme.sizes.control.lg);
+  // How far below its raised place the label rests. In a multiline field it
+  // is on the first line of text, a raised label's height down. In a
+  // single-line field it is in the middle, level with the icons: half as far,
+  // less what iOS adds by itself.
+  const drop = multiline ? raisedLabelHeight : raisedLabelHeight / 2 - iosTextSag;
 
   useEffect(() => {
     const timing = { duration, easing: Easing.bezier(x1, y1, x2, y2) };
@@ -324,9 +326,13 @@ function useFieldMotion(raised: boolean, focused: boolean, multiline: boolean) {
   return { labelStyle, haloStyle };
 }
 
-/** The space above the raised label and below the text in a field of this height. */
-function fieldEdge(height: number) {
-  return (height - body.lineHeight - raisedLabelHeight) / 2;
+/**
+ * The space above the raised label, and below the text, in a single-line
+ * field. The label and the text share what is left inside the border.
+ */
+function fieldEdge(theme: Theme) {
+  const inside = theme.sizes.control.lg - 2 * theme.borderWidths.thin;
+  return (inside - body.lineHeight - raisedLabelHeight) / 2;
 }
 
 /**
@@ -353,7 +359,7 @@ function joinHints(...parts: (string | undefined)[]): string | undefined {
 
 const useStyles = makeStyles((t) => {
   const height = t.sizes.control.lg;
-  const edge = fieldEdge(height);
+  const edge = fieldEdge(t);
   // Where the text's line starts: under the raised label.
   const textTop = edge + raisedLabelHeight;
   return {
