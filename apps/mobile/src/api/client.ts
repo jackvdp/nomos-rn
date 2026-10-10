@@ -1,4 +1,4 @@
-import { uuid } from 'expo-modules-core';
+import { getDeviceId, getSession } from '../auth/session';
 
 // The dev backend unless a build sets EXPO_PUBLIC_API_URL.
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://api.nomos-dev.weuno.co';
@@ -14,19 +14,6 @@ const tenantHeaders = Object.fromEntries(
     'x-portal-type': process.env.EXPO_PUBLIC_TENANT_PORTAL_TYPE,
   }).filter(([, value]) => value),
 ) as Record<string, string>;
-
-// Stands in for the web app's per-tab id: one per app launch, sent with every
-// request. The server binds a session's tokens to it.
-let deviceId: string | undefined;
-
-export function getDeviceId() {
-  return (deviceId ??= uuid.v4());
-}
-
-/** The server can reply with the id it has bound a session to. Use that one from then on. */
-export function setDeviceId(id: string) {
-  deviceId = id;
-}
 
 // fetch never gives up on its own, and many users are on poor networks.
 const TIMEOUT_MS = 15_000;
@@ -50,25 +37,23 @@ interface Envelope {
 
 /**
  * POSTs JSON to the NOMOS REST API and returns the `data` from its
- * `{ success, data | error, timestamp }` envelope. Throws `ApiError` when the
- * server refuses the request. A network failure or timeout throws whatever
- * `fetch` throws.
+ * `{ success, data | error, timestamp }` envelope. Every request carries the
+ * device id, and the access token once there is a session. Throws `ApiError`
+ * when the server refuses the request. A network failure or timeout throws
+ * whatever `fetch` throws.
  */
-export async function post(
-  path: string,
-  body: unknown,
-  headers?: Record<string, string>,
-): Promise<unknown> {
+export async function post(path: string, body?: unknown): Promise<unknown> {
+  const session = getSession();
   const response = await fetch(`${API_URL}${path}`, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
       'x-window-device-id': getDeviceId(),
+      ...(session ? { Authorization: `Bearer ${session.accessToken}` } : null),
       ...tenantHeaders,
-      ...headers,
     },
-    body: JSON.stringify(body),
+    body: body === undefined ? undefined : JSON.stringify(body),
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
   const envelope: Envelope | null = await response.json().catch(() => null);
