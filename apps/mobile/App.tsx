@@ -12,12 +12,10 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { LoginScreen } from './src/auth/LoginScreen';
 import { useAuth } from './src/auth/useAuth';
-import { OnboardingScreen } from './src/onboarding/OnboardingScreen';
+import { SignedOut } from './src/SignedOut';
 
 // The splash screen would otherwise go as soon as the app starts, leaving a
 // blank screen until the fonts are in.
@@ -60,47 +58,6 @@ export default function App() {
   );
 }
 
-interface SignedOutProps {
-  /** The onboarding pages have been seen, so the sign-in screen is the one to start on. */
-  onboarded: boolean;
-  onOnboarded: () => void;
-}
-
-/**
- * What a signed-out user sees: the onboarding pages, then the sign-in screen,
- * which is revealed from under them and can be left for them again.
- */
-function SignedOut({ onboarded, onOnboarded }: SignedOutProps) {
-  // The screen the user is on, or on the way to.
-  const [screen, setScreen] = useState<'onboarding' | 'signIn'>(
-    onboarded ? 'signIn' : 'onboarding',
-  );
-  // The sign-in screen sits under the onboarding pages, from when it is asked
-  // for until they have covered it again.
-  const [signInMounted, setSignInMounted] = useState(onboarded);
-  const onSignIn = screen === 'signIn';
-
-  return (
-    <View style={styles.fill}>
-      {signInMounted && <LoginScreen onBack={() => setScreen('onboarding')} />}
-      <View
-        aria-hidden={onSignIn}
-        style={[StyleSheet.absoluteFill, onSignIn && styles.untouchable]}
-      >
-        <OnboardingScreen
-          hidden={onSignIn}
-          onSignIn={() => {
-            setSignInMounted(true);
-            setScreen('signIn');
-          }}
-          onHidden={onOnboarded}
-          onShown={() => setSignInMounted(false)}
-        />
-      </View>
-    </View>
-  );
-}
-
 // Placeholder until navigation and the first real screens land.
 function Home() {
   const toast = useToast();
@@ -119,13 +76,3 @@ function Home() {
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  fill: {
-    flex: 1,
-  },
-  // Lets touches through to the sign-in screen underneath.
-  untouchable: {
-    pointerEvents: 'none',
-  },
-});

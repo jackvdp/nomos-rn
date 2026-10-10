@@ -1,6 +1,5 @@
 import { Button, makeStyles, Screen, Stack, Text, useReducedMotion, useTheme } from '@nomos/ui';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect, useEffectEvent, useState } from 'react';
+import { useState } from 'react';
 import {
   StyleSheet,
   useWindowDimensions,
@@ -10,7 +9,6 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 import Animated, {
-  Easing,
   Extrapolation,
   interpolate,
   useAnimatedRef,
@@ -18,13 +16,11 @@ import Animated, {
   useDerivedValue,
   useScrollOffset,
   useSharedValue,
-  withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { scheduleOnRN } from 'react-native-worklets';
 
-import { bandShare, BrandBand } from '../brand/BrandBand';
+import { bandShare } from '../brand/BrandBand';
 import { Drawing } from '../brand/Drawing';
 import { headerLogoWidth, Logo, logoAspectRatio } from '../brand/Logo';
 
@@ -64,24 +60,25 @@ const wordsMaxWidth = 440;
 const footerMaxWidth = 480;
 
 export interface OnboardingScreenProps {
-  /**
-   * The sign-in screen is showing instead. This screen fades out over it, and
-   * fades back in when this is cleared.
-   */
+  /** The sign-in screen is showing instead, or is about to. */
   hidden: boolean;
+  /**
+   * How far this screen has given way to the sign-in screen under it: 0 when
+   * it is fully showing, 1 when it is gone. The screen fades as this rises.
+   */
+  cover: SharedValue<number>;
   /** The user has asked for the sign-in screen. */
   onSignIn: () => void;
-  /** The screen has finished fading out. */
-  onHidden: () => void;
-  /** The screen has finished fading back in, so the sign-in screen under it can go. */
-  onShown: () => void;
 }
 
 /**
  * The first thing a new user sees: a few pages on what NOMOS is, swiped or
  * stepped through, ending at the sign-in screen.
+ *
+ * It has no background of its own: it goes over a `BrandBand` reaching
+ * `bandShare.onboarding` of the way down.
  */
-export function OnboardingScreen({ hidden, onSignIn, onHidden, onShown }: OnboardingScreenProps) {
+export function OnboardingScreen({ hidden, cover, onSignIn }: OnboardingScreenProps) {
   const theme = useTheme();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
@@ -96,7 +93,6 @@ export function OnboardingScreen({ hidden, onSignIn, onHidden, onShown }: Onboar
     [offset, width],
   );
   const [current, setCurrent] = useState(0);
-  const cover = useCover(hidden, onHidden, onShown);
   const last = current === pages.length - 1;
 
   const bandHeight = height * bandShare.onboarding;
@@ -109,15 +105,8 @@ export function OnboardingScreen({ hidden, onSignIn, onHidden, onShown }: Onboar
     width - 2 * theme.space.xxl,
     drawingMaxSize,
   );
-  // While the screen fades out, its band rises to where the sign-in screen's
-  // band is, so the band appears to stay as the rest changes.
-  const bandRise = (bandShare.signIn - bandShare.onboarding) * height;
 
   const rootStyle = useAnimatedStyle(() => ({ opacity: 1 - cover.value }), [cover]);
-  const bandStyle = useAnimatedStyle(
-    () => ({ transform: [{ translateY: cover.value * bandRise }] }),
-    [cover, bandRise],
-  );
 
   function onScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
     // Whichever page fills most of the screen is the current one.
@@ -131,11 +120,6 @@ export function OnboardingScreen({ hidden, onSignIn, onHidden, onShown }: Onboar
 
   return (
     <Animated.View style={[styles.root, rootStyle]}>
-      {/* The band is dark in both colour schemes, so the status bar is light in both. */}
-      <StatusBar style="light" />
-      <Animated.View style={[StyleSheet.absoluteFill, bandStyle]}>
-        <BrandBand share={bandShare.onboarding} />
-      </Animated.View>
       <Screen
         scroll
         padding="none"
@@ -311,43 +295,12 @@ function Actions({ position, last, onNext, onSignIn }: ActionsProps) {
   );
 }
 
-/**
- * How far the screen has faded out over the sign-in screen: 0 when it is
- * fully showing, 1 when it is gone. It follows `hidden` and says when it has
- * got there. With reduced motion it gets there at once.
- */
-function useCover(hidden: boolean, onHidden: () => void, onShown: () => void) {
-  const theme = useTheme();
-  const reducedMotion = useReducedMotion();
-  const progress = useSharedValue(hidden ? 1 : 0);
-  const arrived = useEffectEvent(() => (hidden ? onHidden() : onShown()));
-  const duration = reducedMotion ? 0 : theme.duration.slow;
-  const [x1, y1, x2, y2] = theme.easing.standard;
-
-  useEffect(() => {
-    const target = hidden ? 1 : 0;
-    // Already there when the screen first shows.
-    if (progress.value === target) return;
-    const done = () => arrived();
-    progress.value = withTiming(
-      target,
-      { duration, easing: Easing.bezier(x1, y1, x2, y2) },
-      (finished) => {
-        if (finished) scheduleOnRN(done);
-      },
-    );
-  }, [hidden, progress, duration, x1, y1, x2, y2]);
-
-  return progress;
-}
-
 const stepSize = 8;
 const markerWidth = 3 * stepSize;
 
 const useStyles = makeStyles((t) => ({
   root: {
     flex: 1,
-    backgroundColor: t.colors.bg.canvas,
   },
   // Lets the band show through.
   screen: {
