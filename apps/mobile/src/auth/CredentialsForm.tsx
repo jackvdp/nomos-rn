@@ -6,25 +6,20 @@ import { failureMessage } from './failureMessage';
 import { getOrganisation } from './session';
 import { useAuth } from './useAuth';
 
-// The organisation the form starts with, for a build made for just one.
-const defaultOrganisation = process.env.EXPO_PUBLIC_TENANT_ORIGIN ?? '';
-
 // The form's wording in one place, ready to move into translations.
 const copy = {
   title: 'Sign in to NOMOS',
-  intro: 'Enter your organisation, email address and password.',
-  organisation: 'Organisation',
-  organisationHelp: 'The first part of your NOMOS web address.',
+  intro: 'Enter your email address, password and organisation.',
   email: 'Email address',
   password: 'Password',
+  organisation: 'Organisation',
   submit: 'Sign in',
-  organisationRequired: 'Enter your organisation.',
-  organisationInvalid:
-    'Enter the first part of your NOMOS web address, using only letters, numbers and hyphens.',
-  organisationUnknown: 'We could not find an organisation with that name. Check it and try again.',
   emailRequired: 'Enter your email address.',
   emailInvalid: 'Enter an email address in the format name@example.org.',
   passwordRequired: 'Enter your password.',
+  organisationRequired: 'Enter your organisation.',
+  organisationInvalid: 'Enter your organisation using only letters, numbers and hyphens.',
+  organisationUnknown: 'We could not find an organisation with that name. Check it and try again.',
   failed: 'We could not sign you in. Check your connection and try again.',
   elsewhereTitle: 'Already signed in',
   elsewhere: (where?: string) =>
@@ -34,9 +29,9 @@ const copy = {
 };
 
 interface FieldErrors {
-  organisation?: string;
   email?: string;
   password?: string;
+  organisation?: string;
 }
 
 export interface CredentialsFormProps {
@@ -48,15 +43,13 @@ export interface CredentialsFormProps {
 
 export function CredentialsForm({ onNeedsCode, onRejected }: CredentialsFormProps) {
   const auth = useAuth();
-  const organisationRef = useRef<TextInput>(null);
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
-  // Starts with the organisation last signed in to, if there was one.
-  const [organisation, setOrganisation] = useState(
-    () => getOrganisation()?.name ?? toOrganisationName(defaultOrganisation),
-  );
+  const organisationRef = useRef<TextInput>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  // Starts with the organisation last signed in to, if there was one.
+  const [organisation, setOrganisation] = useState(() => getOrganisation()?.name ?? '');
   const [errors, setErrors] = useState<FieldErrors>({});
   const [failure, setFailure] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
@@ -68,31 +61,26 @@ export function CredentialsForm({ onNeedsCode, onRejected }: CredentialsFormProp
     // The button blocks presses while loading, but the keyboard's Go key does not.
     if (submitting) return;
 
-    const name = toOrganisationName(organisation);
     const address = email.trim();
+    const name = toOrganisationName(organisation);
     const found: FieldErrors = {
-      organisation: !name
-        ? copy.organisationRequired
-        : !organisationPattern.test(name)
-          ? copy.organisationInvalid
-          : undefined,
       email: !address
         ? copy.emailRequired
         : !emailPattern.test(address)
           ? copy.emailInvalid
           : undefined,
       password: password ? undefined : copy.passwordRequired,
+      organisation: !name
+        ? copy.organisationRequired
+        : !organisationPattern.test(name)
+          ? copy.organisationInvalid
+          : undefined,
     };
     setErrors(found);
     setFailure(undefined);
-    if (found.organisation || found.email || found.password) {
+    if (found.email || found.password || found.organisation) {
       // The first field that needs putting right.
-      (found.organisation
-        ? organisationRef
-        : found.email
-          ? emailRef
-          : passwordRef
-      ).current?.focus();
+      (found.email ? emailRef : found.password ? passwordRef : organisationRef).current?.focus();
       onRejected?.();
       return;
     }
@@ -102,8 +90,9 @@ export function CredentialsForm({ onNeedsCode, onRejected }: CredentialsFormProp
       // On `signedIn` the session has started and the app moves on from this screen.
       const result = await auth.signIn(name, address, password, replaceOtherSession);
       if (result.status === 'unknownOrganisation') {
+        // The field is not given focus: it is the last one, so the keyboard
+        // would come up over the message.
         setErrors({ organisation: copy.organisationUnknown });
-        organisationRef.current?.focus();
         onRejected?.();
       } else if (result.status === 'needsCode') {
         onNeedsCode(address);
@@ -127,29 +116,6 @@ export function CredentialsForm({ onNeedsCode, onRejected }: CredentialsFormProp
       </Stack>
       {failure ? <Banner tone="danger" message={failure} /> : null}
       <Stack gap="lg">
-        <TextField
-          ref={organisationRef}
-          label={copy.organisation}
-          value={organisation}
-          onChangeText={(text) => {
-            setOrganisation(text);
-            setErrors((current) => ({ ...current, organisation: undefined }));
-          }}
-          // Shows the name as it will be sent.
-          onBlur={() => setOrganisation(toOrganisationName)}
-          helperText={copy.organisationHelp}
-          errorText={errors.organisation}
-          leadingIcon="building"
-          autoCapitalize="none"
-          autoCorrect={false}
-          spellCheck={false}
-          autoComplete="off"
-          textContentType="none"
-          returnKeyType="next"
-          // Keeps the keyboard open while focus moves to the email address.
-          submitBehavior="submit"
-          onSubmitEditing={() => emailRef.current?.focus()}
-        />
         <TextField
           ref={emailRef}
           label={copy.email}
@@ -185,6 +151,28 @@ export function CredentialsForm({ onNeedsCode, onRejected }: CredentialsFormProp
           autoCorrect={false}
           autoComplete="current-password"
           textContentType="password"
+          returnKeyType="next"
+          // Keeps the keyboard open while focus moves to the organisation.
+          submitBehavior="submit"
+          onSubmitEditing={() => organisationRef.current?.focus()}
+        />
+        <TextField
+          ref={organisationRef}
+          label={copy.organisation}
+          value={organisation}
+          onChangeText={(text) => {
+            setOrganisation(text);
+            setErrors((current) => ({ ...current, organisation: undefined }));
+          }}
+          // Shows the name as it will be sent.
+          onBlur={() => setOrganisation(toOrganisationName)}
+          errorText={errors.organisation}
+          leadingIcon="building"
+          autoCapitalize="none"
+          autoCorrect={false}
+          spellCheck={false}
+          autoComplete="off"
+          textContentType="none"
           returnKeyType="go"
           onSubmitEditing={() => submit(false)}
         />
