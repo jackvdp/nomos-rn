@@ -120,7 +120,8 @@ const useStyles = makeStyles((t) => ({
     justifyContent: 'center',
     alignSelf: 'flex-start',
     gap: t.space.sm,
-    borderRadius: t.radii.md,
+    // A capsule: fully rounded ends at every size.
+    borderRadius: t.radii.full,
     borderWidth: t.borderWidths.thin,
   },
   fullWidth: {
