@@ -1,25 +1,19 @@
 import { Card, makeStyles, Screen, useReducedMotion, useTheme } from '@nomos/ui';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { Animated, Easing, Image, useWindowDimensions, View } from 'react-native';
+import { Animated, Easing, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { bandShare, BrandBand } from '../brand/BrandBand';
+import { Logo, logoAspectRatio } from '../brand/Logo';
 import { CodeForm } from './CodeForm';
 import { CredentialsForm } from './CredentialsForm';
-import { NetworkMotif } from './NetworkMotif';
 
-// The copy of the logo with a white wordmark, for the brand-coloured band.
-const logo = require('../../assets/nomos-logo-on-dark.png');
-const logoAspectRatio = 1888 / 427;
 const logoMaxWidth = 280;
-const logoLabel = 'NOMOS';
 const screenPadding = 'lg';
 // Space around the logo, on top of the screen's own padding. `vertical` is the
 // least there can be above and below it.
 const logoPadding = { horizontal: 'xxl', vertical: 'lg' } as const;
-// How far down the screen the brand-coloured band reaches.
-const bandShare = 0.44;
-const motifOpacity = 0.09;
 // Keeps the form a comfortable width on a tablet.
 const cardMaxWidth = 480;
 
@@ -29,7 +23,6 @@ export function LoginScreen() {
   const insets = useSafeAreaInsets();
   const { width: windowWidth } = useWindowDimensions();
   const entrance = useEntrance();
-  // An image does not size itself from a width and a ratio alone, so work the size out.
   const sidePadding = theme.space[screenPadding] + theme.space[logoPadding.horizontal];
   const logoWidth = Math.min(windowWidth - 2 * sidePadding, logoMaxWidth);
   const logoHeight = logoWidth / logoAspectRatio;
@@ -41,7 +34,7 @@ export function LoginScreen() {
     <View style={styles.root}>
       {/* The band is dark in both colour schemes, so the status bar is light in both. */}
       <StatusBar style="light" />
-      <Backdrop />
+      <BrandBand share={bandShare.signIn} />
       <Screen scroll padding={screenPadding} style={styles.screen}>
         {/*
           The card is centred on the screen, not in the space left under the
@@ -49,13 +42,7 @@ export function LoginScreen() {
           for the logo, and share any spare height equally.
         */}
         <Animated.View style={[styles.above, { minHeight: logoAreaHeight, opacity: entrance }]}>
-          <Image
-            source={logo}
-            accessible
-            aria-label={logoLabel}
-            resizeMode="contain"
-            style={{ width: logoWidth, height: logoHeight }}
-          />
+          <Logo width={logoWidth} />
         </Animated.View>
         <Animated.View
           style={{
@@ -87,52 +74,6 @@ export function LoginScreen() {
           ]}
         />
       </Screen>
-    </View>
-  );
-}
-
-/**
- * The brand-coloured band behind the top of the screen, with a curved lower
- * edge. It stays put while the content scrolls over it.
- */
-function Backdrop() {
-  const theme = useTheme();
-  const styles = useStyles();
-  const { width, height } = useWindowDimensions();
-  const bandHeight = height * bandShare;
-  // The band is the bottom of a circle much wider than the screen, which
-  // leaves a shallow curve.
-  const circle = Math.max(2 * width, bandHeight);
-  const circleLeft = (width - circle) / 2;
-  const circleTop = bandHeight - circle;
-  const motifSize = Math.min(width, cardMaxWidth) * 1.5;
-
-  return (
-    <View
-      aria-hidden
-      style={[
-        styles.band,
-        {
-          width: circle,
-          height: circle,
-          borderRadius: circle / 2,
-          left: circleLeft,
-          top: circleTop,
-        },
-      ]}
-    >
-      {/*
-        Centred on the screen's right edge, near the top, so only part of the
-        ring shows. It is inside the circle so that the curve clips it.
-      */}
-      <View
-        style={[
-          styles.motif,
-          { left: width - motifSize * 0.5 - circleLeft, top: -motifSize * 0.38 - circleTop },
-        ]}
-      >
-        <NetworkMotif size={motifSize} color={theme.colors.text.onBrand} />
-      </View>
     </View>
   );
 }
@@ -186,14 +127,5 @@ const useStyles = makeStyles((t) => ({
     alignSelf: 'center',
     borderRadius: t.radii.xxl,
     boxShadow: t.shadows.lg,
-  },
-  band: {
-    position: 'absolute',
-    overflow: 'hidden',
-    backgroundColor: t.colors.bg.brand,
-  },
-  motif: {
-    position: 'absolute',
-    opacity: motifOpacity,
   },
 }));
