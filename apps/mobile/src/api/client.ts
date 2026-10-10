@@ -1,4 +1,4 @@
-import { getDeviceId, getOrganisation, getSession, type Organisation } from '../auth/session';
+import { getDeviceId, getOrganisation, getSession } from '../auth/session';
 
 // The dev backend unless a build sets EXPO_PUBLIC_API_URL.
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://api.nomos-dev.weuno.co';
@@ -8,6 +8,12 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://api.nomos-dev.weuno.
 // address, so it is set per build. The server cannot look an organisation up
 // without it, so sign-in fails.
 const BASE_ORIGIN = process.env.EXPO_PUBLIC_TENANT_BASE_ORIGIN;
+
+// The kind of portal an organisation has. The server finds an organisation by
+// its name, the domain and this together, and every organisation the app is
+// for has this kind. Sent for one of another kind, it makes the server answer
+// that the organisation does not exist.
+const PORTAL_TYPE = 'web3';
 
 // fetch never gives up on its own, and many users are on poor networks.
 const TIMEOUT_MS = 15_000;
@@ -36,38 +42,16 @@ interface Envelope {
  * once there is a session. Throws `ApiError` when the server refuses the
  * request. A network failure or timeout throws whatever `fetch` throws.
  */
-export function post(path: string, body?: unknown): Promise<unknown> {
-  return request('POST', path, { body });
-}
-
-/**
- * GETs from the NOMOS REST API. It returns and throws as `post` does.
- * `organisation` is who to ask about, when that is not the organisation
- * being signed in to.
- */
-export function get(path: string, organisation?: Organisation): Promise<unknown> {
-  return request('GET', path, { organisation });
-}
-
-interface RequestOptions {
-  body?: unknown;
-  organisation?: Organisation;
-}
-
-async function request(
-  method: 'GET' | 'POST',
-  path: string,
-  { body, organisation = getOrganisation() }: RequestOptions,
-): Promise<unknown> {
+export async function post(path: string, body?: unknown): Promise<unknown> {
   const session = getSession();
   const response = await fetch(`${API_URL}${path}`, {
-    method,
+    method: 'POST',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
       'x-window-device-id': getDeviceId(),
       ...(session ? { Authorization: `Bearer ${session.accessToken}` } : null),
-      ...tenantHeaders(organisation),
+      ...tenantHeaders(),
     },
     body: body === undefined ? undefined : JSON.stringify(body),
     signal: AbortSignal.timeout(TIMEOUT_MS),
@@ -80,12 +64,12 @@ async function request(
 }
 
 /** The headers that say which organisation a request is for. Any without a value are left out. */
-function tenantHeaders(organisation: Organisation | undefined) {
+function tenantHeaders() {
   return Object.fromEntries(
     Object.entries({
-      'x-origin': organisation?.name,
+      'x-origin': getOrganisation(),
       'x-base-origin': BASE_ORIGIN,
-      'x-portal-type': organisation?.portalType,
+      'x-portal-type': PORTAL_TYPE,
     }).filter(([, value]) => value),
   ) as Record<string, string>;
 }

@@ -49,7 +49,7 @@ export function CredentialsForm({ onNeedsCode, onRejected }: CredentialsFormProp
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   // Starts with the organisation last signed in to, if there was one.
-  const [organisation, setOrganisation] = useState(() => getOrganisation()?.name ?? '');
+  const [organisation, setOrganisation] = useState(() => getOrganisation() ?? '');
   const [errors, setErrors] = useState<FieldErrors>({});
   const [failure, setFailure] = useState<string>();
   const [submitting, setSubmitting] = useState(false);

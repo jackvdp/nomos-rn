@@ -1,19 +1,7 @@
 import { useSyncExternalStore } from 'react';
 
 import * as authApi from './authApi';
-import {
-  getOrganisation,
-  getSession,
-  setDeviceId,
-  setOrganisation,
-  setSession,
-  subscribe,
-} from './session';
-
-export type SignInResult =
-  | authApi.LoginResult
-  // The server knows no organisation by the name given.
-  | { status: 'unknownOrganisation' };
+import { getSession, setDeviceId, setOrganisation, setSession, subscribe } from './session';
 
 /**
  * The app's sign-in state and the only actions that change it. Every
@@ -35,17 +23,10 @@ async function signIn(
   email: string,
   password: string,
   replaceOtherSession = false,
-): Promise<SignInResult> {
-  // Trying again with the same organisation does not look it up again.
-  const current = getOrganisation();
-  const found =
-    current?.name === organisation ? current : await authApi.findOrganisation(organisation);
-  if (!found) {
-    return { status: 'unknownOrganisation' };
-  }
+) {
   // Requests are for this organisation from here on: this one, the one-time
   // code if there is one, and the session that follows.
-  setOrganisation(found);
+  setOrganisation(organisation);
   const result = await authApi.login(email, password, replaceOtherSession);
   if (result.status === 'signedIn') {
     setSession(result.session);
