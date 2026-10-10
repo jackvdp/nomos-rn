@@ -7,6 +7,7 @@ import {
   light,
   opacity,
   radii,
+  scale,
   sizes,
   space,
   textVariants,
@@ -30,6 +31,7 @@ export interface Theme extends ThemeTokens {
   borderWidths: typeof borderWidths;
   sizes: typeof sizes;
   opacity: typeof opacity;
+  scale: typeof scale;
   duration: typeof duration;
   easing: typeof easing;
   zIndex: typeof zIndex;
@@ -54,6 +56,7 @@ export function createTheme(tokens: ThemeTokens): Theme {
     borderWidths,
     sizes,
     opacity,
+    scale,
     duration,
     easing,
     zIndex,

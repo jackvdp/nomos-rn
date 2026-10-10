@@ -1,6 +1,10 @@
 import { cleanup } from '@testing-library/react-native';
+import { setUpTests } from 'react-native-reanimated';
 
-// Fake timers keep Animated-based components (Skeleton, Toast, Sheet) deterministic.
+// Runs Reanimated's animations in JavaScript, on the same timers as everything else.
+setUpTests();
+
+// Fake timers keep animated components (Button, Skeleton, Toast, Sheet) deterministic.
 beforeEach(() => {
   jest.useFakeTimers();
 });

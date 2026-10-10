@@ -1,7 +1,28 @@
 import type { Meta, StoryObj } from '@storybook/react-native';
+import { useEffect, useState } from 'react';
 
 import { Stack } from '../Stack';
-import { Button } from './Button';
+import { Button, type ButtonProps } from './Button';
+
+// Loads for two seconds after each press, to show the spinner arriving.
+function LoadsWhenPressed(props: ButtonProps) {
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    if (!loading) return;
+    const timer = setTimeout(() => setLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, [loading]);
+  return (
+    <Button
+      {...props}
+      loading={loading}
+      onPress={(event) => {
+        setLoading(true);
+        props.onPress?.(event);
+      }}
+    />
+  );
+}
 
 const meta = {
   title: 'Actions/Button',
@@ -66,6 +87,11 @@ export const States: Story = {
       <Button {...args} variant="secondary" label="Disabled" disabled />
     </Stack>
   ),
+};
+
+export const LoadsOnPress: Story = {
+  args: { label: 'Save changes' },
+  render: (args) => <LoadsWhenPressed {...args} />,
 };
 
 export const FullWidth: Story = {
