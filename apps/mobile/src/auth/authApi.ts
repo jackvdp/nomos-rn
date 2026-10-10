@@ -1,5 +1,5 @@
-import { post } from '../api/client';
-import { getDeviceId, type Session } from './session';
+import { ApiError, get, post } from '../api/client';
+import { getDeviceId, type Organisation, type Session } from './session';
 
 // The calls behind sign-in and sign-out. They only talk to the server: starting
 // and ending the app's session is `useAuth`'s job.
@@ -15,7 +15,33 @@ export type LoginResult =
 
 type Fields = Record<string, unknown>;
 
-/** Signs in with an email address and password. */
+/**
+ * Looks up the organisation called `name`. Resolves to `undefined` when the
+ * server knows none by that name.
+ *
+ * Signing in needs the kind of portal the organisation has, and its theme
+ * settings are where the server gives that. The web app reads it from there
+ * too.
+ */
+export async function findOrganisation(name: string): Promise<Organisation | undefined> {
+  let data: { themeSettings?: Fields } | undefined;
+  try {
+    data = (await get('/api/super-admin/customers/theme-settings', { name })) as typeof data;
+  } catch (error) {
+    // 401 is the server's answer for a name it does not know.
+    if (error instanceof ApiError && (error.status === 401 || error.status === 404)) {
+      return undefined;
+    }
+    throw error;
+  }
+  const portalType = data?.themeSettings?.portalType;
+  return {
+    name,
+    portalType: typeof portalType === 'string' && portalType ? portalType : undefined,
+  };
+}
+
+/** Signs in to the current organisation with an email address and password. */
 export async function login(
   email: string,
   password: string,

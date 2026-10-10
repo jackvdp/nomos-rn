@@ -1,19 +1,13 @@
-import { getDeviceId, getSession } from '../auth/session';
+import { getDeviceId, getOrganisation, getSession, type Organisation } from '../auth/session';
 
 // The dev backend unless a build sets EXPO_PUBLIC_API_URL.
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://api.nomos-dev.weuno.co';
 
-// Which organisation a request is for. The web app takes these from the
-// address it is served from; a mobile build has no address, so they are set
-// per build. Any left unset are not sent, and sign-in then relies on the
-// server matching the email domain to an organisation.
-const tenantHeaders = Object.fromEntries(
-  Object.entries({
-    'x-origin': process.env.EXPO_PUBLIC_TENANT_ORIGIN,
-    'x-base-origin': process.env.EXPO_PUBLIC_TENANT_BASE_ORIGIN,
-    'x-portal-type': process.env.EXPO_PUBLIC_TENANT_PORTAL_TYPE,
-  }).filter(([, value]) => value),
-) as Record<string, string>;
+// The domain that the server looks an organisation's name up under. The web
+// app takes it from the address it is served from; a mobile build has no
+// address, so it is set per build. The server cannot look an organisation up
+// without it, so sign-in fails.
+const BASE_ORIGIN = process.env.EXPO_PUBLIC_TENANT_BASE_ORIGIN;
 
 // fetch never gives up on its own, and many users are on poor networks.
 const TIMEOUT_MS = 15_000;
@@ -38,20 +32,42 @@ interface Envelope {
 /**
  * POSTs JSON to the NOMOS REST API and returns the `data` from its
  * `{ success, data | error, timestamp }` envelope. Every request carries the
- * device id, and the access token once there is a session. Throws `ApiError`
- * when the server refuses the request. A network failure or timeout throws
- * whatever `fetch` throws.
+ * device id, the organisation once one has been chosen, and the access token
+ * once there is a session. Throws `ApiError` when the server refuses the
+ * request. A network failure or timeout throws whatever `fetch` throws.
  */
-export async function post(path: string, body?: unknown): Promise<unknown> {
+export function post(path: string, body?: unknown): Promise<unknown> {
+  return request('POST', path, { body });
+}
+
+/**
+ * GETs from the NOMOS REST API. It returns and throws as `post` does.
+ * `organisation` is who to ask about, when that is not the organisation
+ * being signed in to.
+ */
+export function get(path: string, organisation?: Organisation): Promise<unknown> {
+  return request('GET', path, { organisation });
+}
+
+interface RequestOptions {
+  body?: unknown;
+  organisation?: Organisation;
+}
+
+async function request(
+  method: 'GET' | 'POST',
+  path: string,
+  { body, organisation = getOrganisation() }: RequestOptions,
+): Promise<unknown> {
   const session = getSession();
   const response = await fetch(`${API_URL}${path}`, {
-    method: 'POST',
+    method,
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
       'x-window-device-id': getDeviceId(),
       ...(session ? { Authorization: `Bearer ${session.accessToken}` } : null),
-      ...tenantHeaders,
+      ...tenantHeaders(organisation),
     },
     body: body === undefined ? undefined : JSON.stringify(body),
     signal: AbortSignal.timeout(TIMEOUT_MS),
@@ -61,4 +77,15 @@ export async function post(path: string, body?: unknown): Promise<unknown> {
     throw new ApiError(envelope?.error?.message ?? '', response.status);
   }
   return envelope?.data;
+}
+
+/** The headers that say which organisation a request is for. Any without a value are left out. */
+function tenantHeaders(organisation: Organisation | undefined) {
+  return Object.fromEntries(
+    Object.entries({
+      'x-origin': organisation?.name,
+      'x-base-origin': BASE_ORIGIN,
+      'x-portal-type': organisation?.portalType,
+    }).filter(([, value]) => value),
+  ) as Record<string, string>;
 }
