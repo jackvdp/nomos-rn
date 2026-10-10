@@ -6,3 +6,4 @@ export {
   type ThemeProviderProps,
 } from './ThemeProvider';
 export { makeStyles } from './makeStyles';
+export { fonts } from './fonts';

@@ -46,6 +46,13 @@ violet) is our proposal, not a NOMOS decision.
 
 ## Fonts
 
-`fontFamily.sans` is `undefined`, so text uses the platform font (San
-Francisco on iOS, Roboto on Android). When NOMOS supplies a typeface, set it
-here and load the font files in each app with `expo-font`.
+The typefaces are the two trustnomos.com uses, both under the SIL Open Font
+License:
+
+- **Inter** (`fontFamily.sans`) for body text and the interface.
+- **Cormorant Garamond** (`fontFamily.serif`) for the two largest headings,
+  `display` and `headingLg`. A variant uses it by setting `family: 'serif'`.
+
+This package only names the typefaces. The font files, and the mapping from
+each weight to its file, are in `@nomos/ui` (`src/theme/fonts.ts`), and each
+app loads them at start-up.

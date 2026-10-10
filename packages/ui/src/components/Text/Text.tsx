@@ -1,9 +1,9 @@
 import type { ColorTokens, FontWeight, TextVariant } from '@nomos/tokens';
-import { fontWeight as fontWeights } from '@nomos/tokens';
 import type { Ref } from 'react';
 import { Text as RNText, type TextProps as RNTextProps } from 'react-native';
 
 import { useTheme } from '../../theme';
+import { fontFace } from '../../theme/fonts';
 
 export type TextColor = keyof ColorTokens['text'];
 
@@ -46,7 +46,7 @@ export function Text({
       style={[
         theme.typography[variant],
         { color: theme.colors.text[color] },
-        weight && { fontWeight: fontWeights[weight] },
+        weight && { fontFamily: fontFace(variant, weight) },
         align && { textAlign: align },
         style,
       ]}

@@ -4,7 +4,6 @@ import {
   dark,
   duration,
   easing,
-  fontFamily,
   light,
   opacity,
   radii,
@@ -12,10 +11,13 @@ import {
   space,
   textVariants,
   zIndex,
+  type TextStyleToken,
   type TextVariant,
   type ThemeTokens,
 } from '@nomos/tokens';
 import type { TextStyle } from 'react-native';
+
+import { fontFace } from './fonts';
 
 /**
  * Everything a component needs to style itself: the colour scheme's tokens
@@ -36,10 +38,11 @@ export interface Theme extends ThemeTokens {
 }
 
 function resolveTypography(): Record<TextVariant, TextStyle> {
-  const entries = Object.entries(textVariants).map(([name, token]) => [
-    name,
-    { ...token, ...(fontFamily.sans ? { fontFamily: fontFamily.sans } : null) },
-  ]);
+  const entries = (Object.keys(textVariants) as TextVariant[]).map((variant) => {
+    // The font file carries the weight; see fonts.ts.
+    const { family, fontWeight, ...style }: TextStyleToken = textVariants[variant];
+    return [variant, { ...style, fontFamily: fontFace(variant) }];
+  });
   return Object.fromEntries(entries) as Record<TextVariant, TextStyle>;
 }
 

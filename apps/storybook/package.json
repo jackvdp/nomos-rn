@@ -27,6 +27,7 @@
     "@storybook/addon-ondevice-notes": "10.5.1",
     "@storybook/react-native": "10.5.1",
     "expo": "~57.0.26",
+    "expo-font": "~57.0.4",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",

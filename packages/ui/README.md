@@ -29,16 +29,20 @@ Install the peer dependencies in the app with `npx expo install`, so you get
 the SDK-matched versions:
 
 ```sh
-npx expo install react-native-safe-area-context @expo/vector-icons
+npx expo install react-native-safe-area-context @expo/vector-icons expo-font
 ```
 
-Wrap the app root once:
+Load the fonts before rendering, and wrap the app root once:
 
 ```tsx
-import { ThemeProvider, ToastProvider } from '@nomos/ui';
+import { fonts, ThemeProvider, ToastProvider } from '@nomos/ui';
+import { useFonts } from 'expo-font';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function App() {
+  const [fontsLoaded, fontsError] = useFonts(fonts);
+  if (!fontsLoaded && !fontsError) return null;
+
   return (
     <SafeAreaProvider>
       <ThemeProvider>
@@ -129,10 +133,10 @@ npm run typecheck -w @nomos/ui
 
 ## Known gaps
 
-- **Brand placeholders.** The colours are placeholders and there is no brand
-  font yet (see the tokens README). The icons are Ionicons behind our own
-  names (`IconName`), so a NOMOS icon set can replace them without changing
-  call sites.
+- **Brand placeholders.** The colours are placeholders (see the tokens
+  README). The fonts are the two trustnomos.com uses. The icons are Ionicons
+  behind our own names (`IconName`), so a NOMOS icon set can replace them
+  without changing call sites.
 - **Toasts under modals.** On iOS and Android, toasts render underneath an
   open `Dialog` or `Sheet`, because native modals sit above the app root.
 - **Chip touch area.** `Chip` reaches 44pt with `hitSlop` from a 36pt chip.

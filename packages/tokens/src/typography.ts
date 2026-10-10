@@ -1,16 +1,20 @@
 /**
- * Type scale. Font family is left to the platform (San Francisco on iOS,
- * Roboto on Android) until NOMOS supplies a brand typeface. When it does,
- * set `fontFamily` here and load the files in each app with expo-font.
+ * Type scale. The typefaces are the two trustnomos.com uses: Inter for body
+ * text and the interface, Cormorant Garamond for the large headings. This
+ * file only names them; `@nomos/ui` holds the font files and each app loads
+ * them.
  *
  * Weights are strings because React Native only accepts string weights.
  */
 
 export const fontFamily = {
+  sans: 'Inter',
+  serif: 'Cormorant Garamond',
   /** `undefined` means the platform default. */
-  sans: undefined as string | undefined,
   mono: undefined as string | undefined,
 };
+
+export type FontFamily = 'sans' | 'serif';
 
 export const fontWeight = {
   regular: '400',
@@ -22,6 +26,8 @@ export const fontWeight = {
 export type FontWeight = keyof typeof fontWeight;
 
 export interface TextStyleToken {
+  /** Defaults to `sans`. */
+  family?: FontFamily;
   fontSize: number;
   lineHeight: number;
   fontWeight: (typeof fontWeight)[FontWeight];
@@ -31,9 +37,21 @@ export interface TextStyleToken {
 
 export const textVariants = {
   /** One per screen at most: hero numbers, onboarding. */
-  display: { fontSize: 32, lineHeight: 40, fontWeight: fontWeight.bold, letterSpacing: -0.4 },
+  display: {
+    family: 'serif',
+    fontSize: 32,
+    lineHeight: 40,
+    fontWeight: fontWeight.bold,
+    letterSpacing: -0.4,
+  },
   /** Screen titles. */
-  headingLg: { fontSize: 24, lineHeight: 32, fontWeight: fontWeight.bold, letterSpacing: -0.2 },
+  headingLg: {
+    family: 'serif',
+    fontSize: 24,
+    lineHeight: 32,
+    fontWeight: fontWeight.bold,
+    letterSpacing: -0.2,
+  },
   /** Section headings. */
   headingMd: { fontSize: 20, lineHeight: 28, fontWeight: fontWeight.semibold },
   /** Card and dialog titles. */
