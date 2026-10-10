@@ -27,15 +27,21 @@ export default function App() {
   // Whether the onboarding pages have been seen. Like the session, this is
   // held in memory only for now, so they show again each time the app starts.
   const [onboarded, setOnboarded] = useState(false);
+  // Whether the first screen has yet to take over from the splash screen.
+  const [launching, setLaunching] = useState(true);
   // Text drawn before its font is ready would show in the wrong typeface. If
   // loading fails, carry on with the platform's own font.
   const ready = fontsLoaded || fontsError !== null;
+  // The onboarding pages take the splash screen down themselves, and move
+  // into place from a copy of it. Any other first screen just replaces it.
+  const fromSplash = launching && !session && !onboarded;
 
   useEffect(() => {
-    if (ready) {
+    if (ready && launching && !fromSplash) {
       SplashScreen.hide();
+      setLaunching(false);
     }
-  }, [ready]);
+  }, [ready, launching, fromSplash]);
 
   if (!ready) {
     return null;
@@ -50,7 +56,12 @@ export default function App() {
           {session ? (
             <Home />
           ) : (
-            <SignedOut onboarded={onboarded} onOnboarded={() => setOnboarded(true)} />
+            <SignedOut
+              onboarded={onboarded}
+              onOnboarded={() => setOnboarded(true)}
+              fromSplash={fromSplash}
+              onArrived={() => setLaunching(false)}
+            />
           )}
         </ToastProvider>
       </ThemeProvider>
