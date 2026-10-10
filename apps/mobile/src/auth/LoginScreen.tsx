@@ -1,5 +1,4 @@
 import { Card, Icon, makeStyles, Screen, useReducedMotion, useTheme } from '@nomos/ui';
-import { StatusBar } from 'expo-status-bar';
 import { useEffect, useEffectEvent, useState } from 'react';
 import {
   BackHandler,
@@ -18,10 +17,10 @@ import Animated, {
   withRepeat,
   withSequence,
   withTiming,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { bandShare, BrandBand } from '../brand/BrandBand';
 import { Drawing } from '../brand/Drawing';
 import { headerLogoWidth, Logo } from '../brand/Logo';
 import { CodeForm } from './CodeForm';
@@ -43,11 +42,24 @@ const drawingMaxSize = 184;
 const cardMaxWidth = 480;
 
 export interface LoginScreenProps {
+  /**
+   * How far the screen has come out from under the onboarding pages: 0 when
+   * they cover it, 1 when it is fully showing. Everything but the logo fades
+   * with it.
+   */
+  reveal: SharedValue<number>;
   /** Go back to the onboarding pages. */
   onBack: () => void;
 }
 
-export function LoginScreen({ onBack }: LoginScreenProps) {
+/**
+ * Sign-in by email address and password, then by a one-time code when the
+ * server asks for one.
+ *
+ * It has no background of its own: it goes over a `BrandBand` reaching
+ * `bandShare.signIn` of the way down.
+ */
+export function LoginScreen({ reveal, onBack }: LoginScreenProps) {
   const theme = useTheme();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
@@ -62,17 +74,20 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
   const rise = useEntrance(theme.duration.fast);
   const { offset, shake } = useShake();
   const riseDistance = theme.space.xl;
-  const appearStyle = useAnimatedStyle(() => ({ opacity: appear.value }), [appear]);
+  const appearStyle = useAnimatedStyle(
+    () => ({ opacity: appear.value * reveal.value }),
+    [appear, reveal],
+  );
   const shakeStyle = useAnimatedStyle(
     () => ({ transform: [{ translateX: offset.value }] }),
     [offset],
   );
   const cardStyle = useAnimatedStyle(
     () => ({
-      opacity: rise.value,
+      opacity: rise.value * reveal.value,
       transform: [{ translateY: interpolate(rise.value, [0, 1], [riseDistance, 0]) }],
     }),
-    [rise, riseDistance],
+    [rise, reveal, riseDistance],
   );
 
   function back() {
@@ -100,13 +115,11 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
 
   return (
     <View style={styles.root}>
-      {/* The band is dark in both colour schemes, so the status bar is light in both. */}
-      <StatusBar style="light" />
-      <BrandBand share={bandShare.signIn} />
       <Screen scroll padding={screenPadding} style={styles.screen}>
         {/*
-          Where it is on the onboarding pages, and not part of the entrance,
-          so that the logo holds still as one screen gives way to the other.
+          Where it is on the onboarding pages, and left out of the entrance
+          and of `reveal`, so that the logo holds still as one screen gives
+          way to the other.
         */}
         <View style={styles.logo}>
           <Logo width={headerLogoWidth} />
@@ -217,7 +230,6 @@ function useShake() {
 const useStyles = makeStyles((t) => ({
   root: {
     flex: 1,
-    backgroundColor: t.colors.bg.canvas,
   },
   // Lets the band show through.
   screen: {
