@@ -1,11 +1,17 @@
-import { ThemeProvider, useTheme, type ColorSchemePreference } from '@nomos/ui';
+import { fonts, ThemeProvider, useTheme, type ColorSchemePreference } from '@nomos/ui';
 import type { Decorator } from '@storybook/react-native';
+import { useFonts } from 'expo-font';
 import type { ReactNode } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 function Canvas({ children, fullscreen }: { children: ReactNode; fullscreen: boolean }) {
   const theme = useTheme();
+  const [fontsLoaded, fontsError] = useFonts(fonts);
+  // Hold the story back until its fonts are ready, or have failed to load.
+  if (!fontsLoaded && !fontsError) {
+    return null;
+  }
   if (fullscreen) {
     return (
       <View style={[styles.fill, { backgroundColor: theme.colors.bg.canvas }]}>{children}</View>

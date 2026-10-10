@@ -1,10 +1,15 @@
-import { fontWeight, type FontWeight, type TextVariant } from '@nomos/tokens';
+import {
+  fontFamily,
+  fontWeight,
+  textVariants,
+  type FontWeight,
+  type TextStyleToken,
+  type TextVariant,
+} from '@nomos/tokens';
 import type { Meta, StoryObj } from '@storybook/react-native';
-import type { TextStyle } from 'react-native';
 
 import { Stack } from '../components/Stack';
 import { Text } from '../components/Text';
-import { useTheme } from '../theme';
 import { Page, Section } from './helpers';
 
 const meta = {
@@ -48,27 +53,28 @@ const samples: Record<TextVariant, { text: string; usage: string }> = {
   overline: { text: 'Organisation', usage: 'Eyebrows above titles and group labels.' },
 };
 
-function formatStyle(style: TextStyle): string {
-  const parts = [`${style.fontSize}/${style.lineHeight}`];
-  if (style.fontWeight) parts.push(`${weightName[String(style.fontWeight)]} ${style.fontWeight}`);
-  if (style.letterSpacing) parts.push(`tracking ${style.letterSpacing}`);
-  if (style.textTransform) parts.push(style.textTransform);
-  if (style.fontFamily) parts.push(style.fontFamily);
+function formatStyle(token: TextStyleToken): string {
+  const parts = [
+    fontFamily[token.family ?? 'sans'],
+    `${token.fontSize}/${token.lineHeight}`,
+    `${weightName[token.fontWeight]} ${token.fontWeight}`,
+  ];
+  if (token.letterSpacing) parts.push(`tracking ${token.letterSpacing}`);
+  if (token.textTransform) parts.push(token.textTransform);
   return parts.join(' · ');
 }
 
 function TypeScale() {
-  const { typography } = useTheme();
   return (
     <Page
       title="Typography"
-      intro="Every text variant with size/line height, weight and tracking. The font is the platform default (San Francisco on iOS, Roboto on Android) until NOMOS supplies a brand typeface. Headings are announced as headings by screen readers."
+      intro="Every text variant with its typeface, size/line height, weight and tracking. The two largest headings are Cormorant Garamond and everything else is Inter, as on trustnomos.com. Headings are announced as headings by screen readers."
     >
       <Stack gap="xl">
-        {(Object.keys(typography) as TextVariant[]).map((variant) => (
+        {(Object.keys(textVariants) as TextVariant[]).map((variant) => (
           <Stack key={variant} gap="xxs">
             <Text variant="caption" color="tertiary">
-              {`${variant} · ${formatStyle(typography[variant])}`}
+              {`${variant} · ${formatStyle(textVariants[variant])}`}
             </Text>
             <Text variant={variant}>{samples[variant].text}</Text>
             <Text variant="bodySm" color="secondary">

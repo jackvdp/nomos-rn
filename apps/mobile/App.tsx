@@ -1,4 +1,14 @@
-import { Button, Screen, Stack, Text, ThemeProvider, ToastProvider, useToast } from '@nomos/ui';
+import {
+  Button,
+  fonts,
+  Screen,
+  Stack,
+  Text,
+  ThemeProvider,
+  ToastProvider,
+  useToast,
+} from '@nomos/ui';
+import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -7,6 +17,13 @@ import { useAuth } from './src/auth/useAuth';
 
 export default function App() {
   const { session } = useAuth();
+  const [fontsLoaded, fontsError] = useFonts(fonts);
+
+  // Text drawn before its font is ready would show in the wrong typeface. If
+  // loading fails, carry on with the platform's own font.
+  if (!fontsLoaded && !fontsError) {
+    return null;
+  }
 
   return (
     <SafeAreaProvider>
