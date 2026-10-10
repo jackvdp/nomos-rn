@@ -9,13 +9,13 @@ Components don't import from here directly. They read the theme that
 
 ## What's in it
 
-| File            | Exports                                                                                                 |
-| --------------- | ------------------------------------------------------------------------------------------------------- |
-| `palette.ts`    | Raw colour scales: `navy`, `cyan`, `slate`, `green`, `amber`, `red`, `violet`                           |
-| `themes.ts`     | `light` and `dark` semantic colours and shadows, plus the `ColorTokens`, `Tone` and `ContextKind` types |
-| `scale.ts`      | `space`, `radii`, `borderWidths`, `sizes`, `opacity`, `duration`, `easing`, `zIndex`, `breakpoints`     |
-| `typography.ts` | `textVariants` (the type scale), `fontWeight`, `fontFamily`                                             |
-| `contrast.ts`   | `contrastRatio(fg, bg)`, the WCAG contrast formula                                                      |
+| File            | Exports                                                                                                      |
+| --------------- | ------------------------------------------------------------------------------------------------------------ |
+| `palette.ts`    | Raw colour scales: `navy`, `cyan`, `slate`, `green`, `amber`, `red`, `violet`                                |
+| `themes.ts`     | `light` and `dark` semantic colours and shadows, plus the `ColorTokens`, `Tone` and `ContextKind` types      |
+| `scale.ts`      | `space`, `radii`, `borderWidths`, `sizes`, `opacity`, `scale`, `duration`, `easing`, `zIndex`, `breakpoints` |
+| `typography.ts` | `textVariants` (the type scale), `fontWeight`, `fontFamily`                                                  |
+| `contrast.ts`   | `contrastRatio(fg, bg)`, the WCAG contrast formula                                                           |
 
 ## Two layers of colour
 
