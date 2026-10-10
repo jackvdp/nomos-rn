@@ -10,10 +10,9 @@ import {
 } from 'react-native';
 import Animated, {
   Easing,
-  interpolate,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
-  withDelay,
   withRepeat,
   withSequence,
   withTiming,
@@ -45,7 +44,7 @@ export interface LoginScreenProps {
   /**
    * How far the screen has come out from under the onboarding pages: 0 when
    * they cover it, 1 when it is fully showing. Everything but the logo fades
-   * with it.
+   * with it, and the card rises with it.
    */
   reveal: SharedValue<number>;
   /** Go back to the onboarding pages. */
@@ -69,25 +68,27 @@ export function LoginScreen({ reveal, onBack }: LoginScreenProps) {
   const step = codeSentTo ? 'code' : 'credentials';
   const drawingSize = Math.min(Math.max(height * drawingShare, drawingMinSize), drawingMaxSize);
 
-  // The drawing and the back button fade in, and the card follows them up.
-  const appear = useEntrance();
-  const rise = useEntrance(theme.duration.fast);
+  // How far the screen has arrived: 0 out of sight, 1 in place. It is
+  // whichever of two is further behind. While the onboarding pages give way
+  // to the screen that is `reveal`, which keeps its content in step with the
+  // band. When the screen starts out fully revealed, after signing out, it is
+  // the screen's own entrance.
+  const entrance = useEntrance();
+  const arrival = useDerivedValue(() => Math.min(entrance.value, reveal.value), [entrance, reveal]);
   const { offset, shake } = useShake();
   const riseDistance = theme.space.xl;
-  const appearStyle = useAnimatedStyle(
-    () => ({ opacity: appear.value * reveal.value }),
-    [appear, reveal],
-  );
+  // The drawing and the back button fade in, and the card comes up with them.
+  const appearStyle = useAnimatedStyle(() => ({ opacity: arrival.value }), [arrival]);
   const shakeStyle = useAnimatedStyle(
     () => ({ transform: [{ translateX: offset.value }] }),
     [offset],
   );
   const cardStyle = useAnimatedStyle(
     () => ({
-      opacity: rise.value * reveal.value,
-      transform: [{ translateY: interpolate(rise.value, [0, 1], [riseDistance, 0]) }],
+      opacity: arrival.value,
+      transform: [{ translateY: (1 - arrival.value) * riseDistance }],
     }),
-    [rise, reveal, riseDistance],
+    [arrival, riseDistance],
   );
 
   function back() {
@@ -182,11 +183,8 @@ export function LoginScreen({ reveal, onBack }: LoginScreenProps) {
   );
 }
 
-/**
- * Runs 0 → 1 once, after `delay`, when the screen first shows. With reduced
- * motion it goes straight to 1.
- */
-function useEntrance(delay = 0) {
+/** Runs 0 → 1 once, when the screen first shows. With reduced motion it goes straight to 1. */
+function useEntrance() {
   const theme = useTheme();
   const reducedMotion = useReducedMotion();
   const progress = useSharedValue(0);
@@ -196,8 +194,8 @@ function useEntrance(delay = 0) {
   useEffect(() => {
     progress.value = reducedMotion
       ? 1
-      : withDelay(delay, withTiming(1, { duration, easing: Easing.bezier(x1, y1, x2, y2) }));
-  }, [progress, reducedMotion, delay, duration, x1, y1, x2, y2]);
+      : withTiming(1, { duration, easing: Easing.bezier(x1, y1, x2, y2) });
+  }, [progress, reducedMotion, duration, x1, y1, x2, y2]);
 
   return progress;
 }
