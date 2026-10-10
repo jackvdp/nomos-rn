@@ -1,4 +1,4 @@
-import { post } from '../api/client';
+import { ApiError, post } from '../api/client';
 import { getDeviceId, type Session } from './session';
 
 // The calls behind sign-in and sign-out. They only talk to the server: starting
@@ -11,22 +11,32 @@ export type LoginResult =
   | { status: 'needsCode'; deviceId?: string }
   // The account is signed in somewhere else; `where` names it when the server
   // says. Call `login` again with `replaceOtherSession` to take over.
-  | { status: 'activeElsewhere'; where?: string };
+  | { status: 'activeElsewhere'; where?: string }
+  // The server knows no organisation by the name being signed in to.
+  | { status: 'unknownOrganisation' };
 
 type Fields = Record<string, unknown>;
 
-/** Signs in with an email address and password. */
+/** Signs in to the current organisation with an email address and password. */
 export async function login(
   email: string,
   password: string,
   replaceOtherSession = false,
 ): Promise<LoginResult> {
-  const reply = await authPost('/api/admin/auth/login', {
-    email,
-    password,
-    deviceId: getDeviceId(),
-    forceLogin: replaceOtherSession,
-  });
+  let reply: Fields;
+  try {
+    reply = await authPost('/api/admin/auth/login', {
+      email,
+      password,
+      deviceId: getDeviceId(),
+      forceLogin: replaceOtherSession,
+    });
+  } catch (error) {
+    if (isUnknownOrganisation(error)) {
+      return { status: 'unknownOrganisation' };
+    }
+    throw error;
+  }
   if (reply.activeSession) {
     const { browser, device } = (reply.session ?? {}) as Fields;
     const where = [browser, device].filter((part) => typeof part === 'string' && part).join(' on ');
@@ -60,6 +70,14 @@ export async function logout(): Promise<void> {
 async function authPost(path: string, body: unknown): Promise<Fields> {
   const data = (await post(path, body)) as { user?: Fields } | undefined;
   return data?.user ?? {};
+}
+
+// The server refuses an organisation it does not know with a 401, as it does
+// a wrong password, so only its wording tells the two apart: `No domain
+// "<name>" found for "<domain>"`. The web app goes by the same words. Should
+// the wording change, the reply is treated as any other refusal.
+function isUnknownOrganisation(error: unknown) {
+  return error instanceof ApiError && error.status === 401 && /no domain/i.test(error.message);
 }
 
 /** The device id the server has bound this sign-in to, when the reply says. */

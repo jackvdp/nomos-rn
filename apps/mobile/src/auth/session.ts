@@ -12,6 +12,10 @@ export interface Session {
 // `useAuth`. It is held in memory only for now, so reloading the app signs
 // you out.
 let session: Session | null = null;
+// The organisation that requests are for, by its short name in lower case:
+// the first part of its NOMOS web address. It is set when a sign-in starts
+// and kept after sign-out, so that the sign-in form can start with it.
+let organisation: string | undefined;
 // The device id used until sign-in completes. It stands in for the web app's
 // per-tab id.
 let pendingDeviceId: string | undefined;
@@ -37,6 +41,14 @@ export function subscribe(listener: () => void) {
   return () => {
     listeners.delete(listener);
   };
+}
+
+export function getOrganisation() {
+  return organisation;
+}
+
+export function setOrganisation(name: string) {
+  organisation = name;
 }
 
 /** The id to send as `x-window-device-id`: the session's, or one made for the sign-in in progress. */

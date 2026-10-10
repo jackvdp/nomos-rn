@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 
 import * as authApi from './authApi';
-import { getSession, setDeviceId, setSession, subscribe } from './session';
+import { getSession, setDeviceId, setOrganisation, setSession, subscribe } from './session';
 
 /**
  * The app's sign-in state and the only actions that change it. Every
@@ -14,10 +14,19 @@ export function useAuth() {
 }
 
 /**
- * Signs in with an email address and password. The session starts when the
- * result is `signedIn`; the other results say what the user has to do next.
+ * Signs in to the organisation called `organisation` with an email address
+ * and password. The session starts when the result is `signedIn`; the other
+ * results say what the user has to do next.
  */
-async function signIn(email: string, password: string, replaceOtherSession = false) {
+async function signIn(
+  organisation: string,
+  email: string,
+  password: string,
+  replaceOtherSession = false,
+) {
+  // Requests are for this organisation from here on: this one, the one-time
+  // code if there is one, and the session that follows.
+  setOrganisation(organisation);
   const result = await authApi.login(email, password, replaceOtherSession);
   if (result.status === 'signedIn') {
     setSession(result.session);
