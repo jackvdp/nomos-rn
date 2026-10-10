@@ -49,33 +49,42 @@ export default function App() {
 }
 
 interface SignedOutProps {
-  /** The onboarding pages have been seen, so the sign-in screen shows straight away. */
+  /** The onboarding pages have been seen, so the sign-in screen is the one to start on. */
   onboarded: boolean;
   onOnboarded: () => void;
 }
 
 /**
  * What a signed-out user sees: the onboarding pages, then the sign-in screen,
- * which is revealed from under them.
+ * which is revealed from under them and can be left for them again.
  */
 function SignedOut({ onboarded, onOnboarded }: SignedOutProps) {
-  // Set while the onboarding pages fade out over the sign-in screen.
-  const [revealing, setRevealing] = useState(false);
+  // The screen the user is on, or on the way to.
+  const [screen, setScreen] = useState<'onboarding' | 'signIn'>(
+    onboarded ? 'signIn' : 'onboarding',
+  );
+  // The sign-in screen sits under the onboarding pages, from when it is asked
+  // for until they have covered it again.
+  const [signInMounted, setSignInMounted] = useState(onboarded);
+  const onSignIn = screen === 'signIn';
+
   return (
     <View style={styles.fill}>
-      {(onboarded || revealing) && <LoginScreen />}
-      {!onboarded && (
-        <View
-          aria-hidden={revealing}
-          style={[StyleSheet.absoluteFill, revealing && styles.untouchable]}
-        >
-          <OnboardingScreen
-            leaving={revealing}
-            onSignIn={() => setRevealing(true)}
-            onLeft={onOnboarded}
-          />
-        </View>
-      )}
+      {signInMounted && <LoginScreen onBack={() => setScreen('onboarding')} />}
+      <View
+        aria-hidden={onSignIn}
+        style={[StyleSheet.absoluteFill, onSignIn && styles.untouchable]}
+      >
+        <OnboardingScreen
+          hidden={onSignIn}
+          onSignIn={() => {
+            setSignInMounted(true);
+            setScreen('signIn');
+          }}
+          onHidden={onOnboarded}
+          onShown={() => setSignInMounted(false)}
+        />
+      </View>
     </View>
   );
 }

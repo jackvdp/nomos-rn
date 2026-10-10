@@ -1,7 +1,16 @@
-import { Card, makeStyles, Screen, useReducedMotion, useTheme } from '@nomos/ui';
+import { Card, Icon, makeStyles, Screen, useReducedMotion, useTheme } from '@nomos/ui';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
-import { Animated, Easing, useWindowDimensions, View } from 'react-native';
+import { useEffect, useEffectEvent, useState } from 'react';
+import {
+  Animated,
+  BackHandler,
+  Easing,
+  Keyboard,
+  Platform,
+  Pressable,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { bandShare, BrandBand } from '../brand/BrandBand';
@@ -9,6 +18,7 @@ import { Logo, logoAspectRatio } from '../brand/Logo';
 import { CodeForm } from './CodeForm';
 import { CredentialsForm } from './CredentialsForm';
 
+const backLabel = 'Back';
 const logoMaxWidth = 280;
 const screenPadding = 'lg';
 // Space around the logo, on top of the screen's own padding. `vertical` is the
@@ -17,7 +27,12 @@ const logoPadding = { horizontal: 'xxl', vertical: 'lg' } as const;
 // Keeps the form a comfortable width on a tablet.
 const cardMaxWidth = 480;
 
-export function LoginScreen() {
+export interface LoginScreenProps {
+  /** Go back to the onboarding pages. */
+  onBack: () => void;
+}
+
+export function LoginScreen({ onBack }: LoginScreenProps) {
   const theme = useTheme();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
@@ -29,6 +44,29 @@ export function LoginScreen() {
   const logoAreaHeight = logoHeight + 2 * theme.space[logoPadding.vertical];
   // Set once the password has been accepted and a one-time code emailed to this address.
   const [codeSentTo, setCodeSentTo] = useState<string>();
+
+  function back() {
+    // The keyboard would otherwise stay up over the onboarding pages.
+    Keyboard.dismiss();
+    onBack();
+  }
+
+  // Android's back button goes back a step: from the code to the email and
+  // password, and from there to the onboarding pages.
+  const onHardwareBack = useEffectEvent(() => {
+    if (codeSentTo) {
+      setCodeSentTo(undefined);
+    } else {
+      back();
+    }
+  });
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      onHardwareBack();
+      return true;
+    });
+    return () => subscription.remove();
+  }, []);
 
   return (
     <View style={styles.root}>
@@ -74,6 +112,35 @@ export function LoginScreen() {
           ]}
         />
       </Screen>
+      {/*
+        Over the band, clear of the content. The code step has its own way
+        back to the email and password, so this shows on the first step only.
+      */}
+      {!codeSentTo && (
+        <Animated.View
+          style={[
+            styles.back,
+            { top: insets.top + theme.space.xs, start: theme.space.sm, opacity: entrance },
+          ]}
+        >
+          <Pressable
+            role="button"
+            aria-label={backLabel}
+            onPress={back}
+            style={({ pressed }) => [
+              styles.backButton,
+              pressed && { opacity: theme.opacity.pressed },
+            ]}
+          >
+            <Icon
+              // Each platform's own back glyph.
+              name={Platform.OS === 'ios' ? 'chevron-back' : 'arrow-back'}
+              size="lg"
+              color={theme.colors.text.onBrand}
+            />
+          </Pressable>
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -120,6 +187,15 @@ const useStyles = makeStyles((t) => ({
   },
   below: {
     flexGrow: 1,
+  },
+  back: {
+    position: 'absolute',
+  },
+  backButton: {
+    width: t.sizes.touchTarget,
+    height: t.sizes.touchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   card: {
     width: '100%',

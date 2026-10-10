@@ -3,16 +3,27 @@ import { StatusBar } from 'expo-status-bar';
 import LottieView from 'lottie-react-native';
 import { useEffect, useEffectEvent, useRef, useState, type ComponentProps } from 'react';
 import {
-  Animated,
-  Easing,
-  ScrollView,
   StyleSheet,
   useWindowDimensions,
   View,
+  type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
+import Animated, {
+  Easing,
+  Extrapolation,
+  interpolate,
+  useAnimatedRef,
+  useAnimatedStyle,
+  useDerivedValue,
+  useScrollOffset,
+  useSharedValue,
+  withTiming,
+  type SharedValue,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { scheduleOnRN } from 'react-native-worklets';
 
 import { bandShare, BrandBand } from '../brand/BrandBand';
 import { Logo, logoAspectRatio } from '../brand/Logo';
@@ -56,27 +67,39 @@ const wordsMaxWidth = 440;
 const footerMaxWidth = 480;
 
 export interface OnboardingScreenProps {
+  /**
+   * The sign-in screen is showing instead. This screen fades out over it, and
+   * fades back in when this is cleared.
+   */
+  hidden: boolean;
   /** The user has asked for the sign-in screen. */
   onSignIn: () => void;
-  /** Set once the sign-in screen is underneath. This screen then fades out to reveal it. */
-  leaving: boolean;
-  /** The screen has faded out and can be removed. */
-  onLeft: () => void;
+  /** The screen has finished fading out. */
+  onHidden: () => void;
+  /** The screen has finished fading back in, so the sign-in screen under it can go. */
+  onShown: () => void;
 }
 
 /**
  * The first thing a new user sees: a few pages on what NOMOS is, swiped or
  * stepped through, ending at the sign-in screen.
  */
-export function OnboardingScreen({ onSignIn, leaving, onLeft }: OnboardingScreenProps) {
+export function OnboardingScreen({ hidden, onSignIn, onHidden, onShown }: OnboardingScreenProps) {
   const theme = useTheme();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   const reducedMotion = useReducedMotion();
   const { width, height } = useWindowDimensions();
-  const pager = useRef<ScrollView>(null);
+  const pager = useAnimatedRef<Animated.ScrollView>();
+  const offset = useScrollOffset(pager);
+  // Where the pager is, in pages: 1.5 is half-way from the second page to the
+  // third. The footer's motion follows it, so it keeps pace with a swipe.
+  const position = useDerivedValue(
+    () => Math.min(Math.max(offset.value / width, 0), pages.length - 1),
+    [offset, width],
+  );
   const [current, setCurrent] = useState(0);
-  const exit = useExit(leaving, onLeft);
+  const cover = useCover(hidden, onHidden, onShown);
   const last = current === pages.length - 1;
 
   const bandHeight = height * bandShare.onboarding;
@@ -88,6 +111,15 @@ export function OnboardingScreen({ onSignIn, leaving, onLeft }: OnboardingScreen
     Math.max(0, drawingAreaHeight - theme.space.lg),
     width - 2 * theme.space.xxl,
     drawingMaxSize,
+  );
+  // While the screen fades out, its band rises to where the sign-in screen's
+  // band is, so the band appears to stay as the rest changes.
+  const bandRise = (bandShare.signIn - bandShare.onboarding) * height;
+
+  const rootStyle = useAnimatedStyle(() => ({ opacity: 1 - cover.value }), [cover]);
+  const bandStyle = useAnimatedStyle(
+    () => ({ transform: [{ translateY: cover.value * bandRise }] }),
+    [cover, bandRise],
   );
 
   function onScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
@@ -101,33 +133,10 @@ export function OnboardingScreen({ onSignIn, leaving, onLeft }: OnboardingScreen
   }
 
   return (
-    <Animated.View
-      style={[
-        styles.root,
-        { opacity: exit.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) },
-      ]}
-    >
+    <Animated.View style={[styles.root, rootStyle]}>
       {/* The band is dark in both colour schemes, so the status bar is light in both. */}
       <StatusBar style="light" />
-      {/*
-        While the screen fades out, its band rises to where the sign-in
-        screen's band is, so the band appears to stay as the rest changes.
-      */}
-      <Animated.View
-        style={[
-          StyleSheet.absoluteFill,
-          {
-            transform: [
-              {
-                translateY: exit.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, (bandShare.signIn - bandShare.onboarding) * height],
-                }),
-              },
-            ],
-          },
-        ]}
-      >
+      <Animated.View style={[StyleSheet.absoluteFill, bandStyle]}>
         <BrandBand share={bandShare.onboarding} />
       </Animated.View>
       <Screen
@@ -136,33 +145,15 @@ export function OnboardingScreen({ onSignIn, leaving, onLeft }: OnboardingScreen
         style={styles.screen}
         footer={
           <Stack gap="lg" paddingHorizontal="lg" style={styles.footer}>
-            <View
-              accessible
-              aria-label={copy.position(current + 1, pages.length)}
-              style={styles.dots}
-            >
-              {pages.map((page, index) => (
-                <View key={page.key} style={[styles.dot, index === current && styles.currentDot]} />
-              ))}
-            </View>
-            <Stack direction="row" gap="sm">
-              {!last && (
-                <Button label={copy.skip} variant="tertiary" size="lg" onPress={onSignIn} />
-              )}
-              <Button
-                label={last ? copy.signIn : copy.next}
-                size="lg"
-                style={styles.grow}
-                onPress={last ? onSignIn : next}
-              />
-            </Stack>
+            <Steps position={position} label={copy.position(current + 1, pages.length)} />
+            <Actions position={position} last={last} onNext={next} onSignIn={onSignIn} />
           </Stack>
         }
       >
         <View style={[styles.logo, { height: logoAreaHeight }]}>
           <Logo width={logoWidth} />
         </View>
-        <ScrollView
+        <Animated.ScrollView
           ref={pager}
           horizontal
           pagingEnabled
@@ -173,7 +164,11 @@ export function OnboardingScreen({ onSignIn, leaving, onLeft }: OnboardingScreen
           {pages.map((page, index) => (
             <View key={page.key} style={{ width }}>
               <View aria-hidden style={[styles.drawing, { height: drawingAreaHeight }]}>
-                <Drawing source={page.drawing} size={drawingSize} playing={index === current} />
+                <Drawing
+                  source={page.drawing}
+                  size={drawingSize}
+                  playing={index === current && !hidden}
+                />
               </View>
               <Stack gap="sm" padding="xl" style={styles.words}>
                 <Text variant="display" align="center">
@@ -185,9 +180,137 @@ export function OnboardingScreen({ onSignIn, leaving, onLeft }: OnboardingScreen
               </Stack>
             </View>
           ))}
-        </ScrollView>
+        </Animated.ScrollView>
       </Screen>
     </Animated.View>
+  );
+}
+
+interface StepsProps {
+  /** Where the pager is, in pages. */
+  position: SharedValue<number>;
+  /** Read out by screen readers in place of the dots. */
+  label: string;
+}
+
+/**
+ * The page indicator: a dot for each page and a longer marker on the current
+ * one. The marker is a single element that slides from dot to dot as the
+ * pager moves, and the dots shift along to make room for it.
+ */
+function Steps({ position, label }: StepsProps) {
+  const theme = useTheme();
+  const styles = useStyles();
+  // From the start of one dot's room to the start of the next.
+  const pitch = stepSize + theme.space.sm;
+  const markerStyle = useAnimatedStyle(
+    () => ({ transform: [{ translateX: position.value * pitch }] }),
+    [position, pitch],
+  );
+
+  return (
+    <View accessible aria-label={label} style={styles.steps}>
+      {pages.map((page, index) => (
+        <Step key={page.key} index={index} position={position} />
+      ))}
+      <Animated.View style={[styles.marker, markerStyle]} />
+    </View>
+  );
+}
+
+interface StepProps {
+  index: number;
+  position: SharedValue<number>;
+}
+
+function Step({ index, position }: StepProps) {
+  const styles = useStyles();
+  // A dot's room is as wide as the marker while the marker is on it, and
+  // closes to the dot's own width as the marker leaves.
+  const roomStyle = useAnimatedStyle(
+    () => ({
+      width: interpolate(
+        position.value,
+        [index - 1, index, index + 1],
+        [stepSize, markerWidth, stepSize],
+        Extrapolation.CLAMP,
+      ),
+    }),
+    [position, index],
+  );
+
+  return (
+    <Animated.View style={[styles.step, roomStyle]}>
+      <View style={styles.dot} />
+    </Animated.View>
+  );
+}
+
+interface ActionsProps {
+  /** Where the pager is, in pages. */
+  position: SharedValue<number>;
+  /** The last page is the current one. */
+  last: boolean;
+  onNext: () => void;
+  onSignIn: () => void;
+}
+
+/**
+ * The buttons under the pages. On the way to the last page Skip fades out,
+ * and Next spreads over its place and turns into Sign in. Next and Sign in
+ * are two buttons in the same spot, the second fading in over the first.
+ */
+function Actions({ position, last, onNext, onSignIn }: ActionsProps) {
+  const styles = useStyles();
+  // Skip's width with the gap after it, once it has been laid out.
+  const skipWidth = useSharedValue(0);
+  // 0 up to the page before the last, 1 on the last.
+  const arrival = useDerivedValue(
+    () => Math.max(0, position.value - (pages.length - 2)),
+    [position],
+  );
+
+  // Gone early, before the main button reaches its label.
+  const skipStyle = useAnimatedStyle(
+    () => ({ opacity: interpolate(arrival.value, [0, 0.3], [1, 0], Extrapolation.CLAMP) }),
+    [arrival],
+  );
+  // Skip keeps its place in the row, and so its width, and the main button is
+  // pulled back over it.
+  const mainStyle = useAnimatedStyle(
+    () => ({ marginStart: -skipWidth.value * arrival.value }),
+    [skipWidth, arrival],
+  );
+  // Next stays solid under Sign in, so the button never looks see-through. It
+  // goes once Sign in has covered it, or it would show when Sign in is pressed.
+  const nextStyle = useAnimatedStyle(() => ({ opacity: arrival.value > 0.99 ? 0 : 1 }), [arrival]);
+  const signInStyle = useAnimatedStyle(() => ({ opacity: arrival.value }), [arrival]);
+
+  function onSkipLayout(event: LayoutChangeEvent) {
+    skipWidth.value = event.nativeEvent.layout.width;
+  }
+
+  return (
+    <View style={styles.actions}>
+      <Animated.View
+        onLayout={onSkipLayout}
+        aria-hidden={last}
+        style={[styles.skip, last && styles.untouchable, skipStyle]}
+      >
+        <Button label={copy.skip} variant="tertiary" size="lg" onPress={onSignIn} />
+      </Animated.View>
+      <Animated.View style={[styles.grow, mainStyle]}>
+        <Animated.View aria-hidden={last} style={[last && styles.untouchable, nextStyle]}>
+          <Button label={copy.next} size="lg" fullWidth onPress={onNext} />
+        </Animated.View>
+        <Animated.View
+          aria-hidden={!last}
+          style={[StyleSheet.absoluteFill, !last && styles.untouchable, signInStyle]}
+        >
+          <Button label={copy.signIn} size="lg" fullWidth onPress={onSignIn} />
+        </Animated.View>
+      </Animated.View>
+    </View>
   );
 }
 
@@ -225,39 +348,37 @@ function Drawing({ source, size, playing }: DrawingProps) {
 }
 
 /**
- * Runs 0 → 1 once `leaving` is set, then calls `onLeft`. With reduced motion
- * it calls `onLeft` straight away.
+ * How far the screen has faded out over the sign-in screen: 0 when it is
+ * fully showing, 1 when it is gone. It follows `hidden` and says when it has
+ * got there. With reduced motion it gets there at once.
  */
-function useExit(leaving: boolean, onLeft: () => void) {
+function useCover(hidden: boolean, onHidden: () => void, onShown: () => void) {
   const theme = useTheme();
   const reducedMotion = useReducedMotion();
-  const [progress] = useState(() => new Animated.Value(0));
-  const left = useEffectEvent(onLeft);
-  const duration = theme.duration.slow;
+  const progress = useSharedValue(hidden ? 1 : 0);
+  const arrived = useEffectEvent(() => (hidden ? onHidden() : onShown()));
+  const duration = reducedMotion ? 0 : theme.duration.slow;
   const [x1, y1, x2, y2] = theme.easing.standard;
 
   useEffect(() => {
-    if (!leaving) return;
-    if (reducedMotion) {
-      left();
-      return;
-    }
-    const animation = Animated.timing(progress, {
-      toValue: 1,
-      duration,
-      easing: Easing.bezier(x1, y1, x2, y2),
-      useNativeDriver: true,
-    });
-    animation.start(({ finished }) => {
-      if (finished) left();
-    });
-    return () => animation.stop();
-  }, [leaving, progress, reducedMotion, duration, x1, y1, x2, y2]);
+    const target = hidden ? 1 : 0;
+    // Already there when the screen first shows.
+    if (progress.value === target) return;
+    const done = () => arrived();
+    progress.value = withTiming(
+      target,
+      { duration, easing: Easing.bezier(x1, y1, x2, y2) },
+      (finished) => {
+        if (finished) scheduleOnRN(done);
+      },
+    );
+  }, [hidden, progress, duration, x1, y1, x2, y2]);
 
   return progress;
 }
 
-const dotSize = 8;
+const stepSize = 8;
+const markerWidth = 3 * stepSize;
 
 const useStyles = makeStyles((t) => ({
   root: {
@@ -287,22 +408,41 @@ const useStyles = makeStyles((t) => ({
     maxWidth: footerMaxWidth,
     alignSelf: 'center',
   },
-  dots: {
+  // As wide as its dots, so that the marker can be placed from its edge.
+  steps: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    alignSelf: 'center',
     gap: t.space.sm,
   },
+  step: {
+    alignItems: 'center',
+  },
   dot: {
-    width: dotSize,
-    height: dotSize,
+    width: stepSize,
+    height: stepSize,
     borderRadius: t.radii.full,
     backgroundColor: t.colors.control.track,
   },
-  currentDot: {
-    width: 3 * dotSize,
+  marker: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: markerWidth,
+    height: stepSize,
+    borderRadius: t.radii.full,
     backgroundColor: t.colors.control.checked,
+  },
+  actions: {
+    flexDirection: 'row',
+  },
+  // The gap before the main button is in here so that it is covered too.
+  skip: {
+    paddingEnd: t.space.sm,
   },
   grow: {
     flex: 1,
+  },
+  untouchable: {
+    pointerEvents: 'none',
   },
 }));
