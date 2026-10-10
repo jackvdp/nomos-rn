@@ -27,6 +27,17 @@ describe('Button', () => {
     expect(button).toBeBusy();
   });
 
+  test('still tells the caller when a press starts and ends', async () => {
+    const onPressIn = jest.fn();
+    const onPressOut = jest.fn();
+    await renderWithTheme(
+      <Button label="Continue" onPressIn={onPressIn} onPressOut={onPressOut} />,
+    );
+    await userEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    expect(onPressIn).toHaveBeenCalledTimes(1);
+    expect(onPressOut).toHaveBeenCalledTimes(1);
+  });
+
   test('uses a custom accessibility label when given', async () => {
     await renderWithTheme(<Button label="Delete" aria-label="Delete draft post" />);
     expect(screen.getByRole('button', { name: 'Delete draft post' })).toBeOnTheScreen();

@@ -55,6 +55,12 @@ export const opacity = {
   pressed: 0.7,
 } as const;
 
+/** Size multipliers, for a `scale` transform. */
+export const scale = {
+  /** A button while it is held down. */
+  pressed: 0.97,
+} as const;
+
 /** Durations in milliseconds. Keep motion short: many users are on low-end phones. */
 export const duration = {
   instant: 0,

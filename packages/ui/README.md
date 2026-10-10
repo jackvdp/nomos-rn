@@ -29,8 +29,12 @@ Install the peer dependencies in the app with `npx expo install`, so you get
 the SDK-matched versions:
 
 ```sh
-npx expo install react-native-safe-area-context @expo/vector-icons expo-font
+npx expo install react-native-safe-area-context @expo/vector-icons expo-font \
+  react-native-reanimated react-native-worklets
 ```
+
+Expo sets up Reanimated's Babel plugin by itself. In a bare React Native app,
+add `react-native-worklets/plugin` to `babel.config.js` and run `pod install`.
 
 Load the fonts before rendering, and wrap the app root once:
 
@@ -106,9 +110,18 @@ Copy the shape of `src/components/Button/`:
 - **Internationalisation.** Visible text comes from props. Accessibility
   labels for a component's own controls (clear, dismiss, show password) are
   props with English defaults, so the app can translate them.
-- **Motion.** Use `Animated` with the native driver, keep durations to the
-  tokens, and skip or shorten animations when `useReducedMotion()` is true.
-  Don't add reanimated or gesture-handler as library dependencies.
+- **Motion.**
+  - Use Reanimated (`react-native-reanimated`) for new motion. `Button` is the
+    example to follow.
+  - Components written before it (`Dialog`, `Sheet`, `Toast`, `Switch`,
+    `ProgressBar`, `Skeleton`) use React Native's `Animated` with the native
+    driver. Move one to Reanimated when it needs something `Animated` can't
+    do smoothly.
+  - Keep durations and easing to the tokens.
+  - Skip or shorten animations when `useReducedMotion()` is true.
+  - Give `useAnimatedStyle` its dependency list. Reanimated's Babel plugin
+    works it out on iOS and Android, but the web Storybook runs without the
+    plugin.
 - **Stories.**
   - Title is `'<Group>/<Name>'`.
   - Include a `Playground` with controls, plus stories for variants, states
