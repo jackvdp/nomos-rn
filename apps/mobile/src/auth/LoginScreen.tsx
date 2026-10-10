@@ -2,28 +2,43 @@ import { Card, Icon, makeStyles, Screen, useReducedMotion, useTheme } from '@nom
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useEffectEvent, useState } from 'react';
 import {
-  Animated,
   BackHandler,
-  Easing,
   Keyboard,
   Platform,
   Pressable,
   useWindowDimensions,
   View,
 } from 'react-native';
+import Animated, {
+  Easing,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { bandShare, BrandBand } from '../brand/BrandBand';
-import { Logo, logoAspectRatio } from '../brand/Logo';
+import { Drawing } from '../brand/Drawing';
+import { headerLogoWidth, Logo } from '../brand/Logo';
 import { CodeForm } from './CodeForm';
 import { CredentialsForm } from './CredentialsForm';
 
 const backLabel = 'Back';
-const logoMaxWidth = 280;
 const screenPadding = 'lg';
-// Space around the logo, on top of the screen's own padding. `vertical` is the
-// least there can be above and below it.
-const logoPadding = { horizontal: 'xxl', vertical: 'lg' } as const;
+// A drawing for each step: a padlock for the email and password, an envelope
+// for the code.
+const drawings = {
+  credentials: require('../../assets/lottie/sign-in.json'),
+  code: require('../../assets/lottie/code.json'),
+};
+// The drawing's size: a share of the screen's height, within limits.
+const drawingShare = 0.2;
+const drawingMinSize = 112;
+const drawingMaxSize = 184;
 // Keeps the form a comfortable width on a tablet.
 const cardMaxWidth = 480;
 
@@ -36,14 +51,29 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
   const theme = useTheme();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
-  const { width: windowWidth } = useWindowDimensions();
-  const entrance = useEntrance();
-  const sidePadding = theme.space[screenPadding] + theme.space[logoPadding.horizontal];
-  const logoWidth = Math.min(windowWidth - 2 * sidePadding, logoMaxWidth);
-  const logoHeight = logoWidth / logoAspectRatio;
-  const logoAreaHeight = logoHeight + 2 * theme.space[logoPadding.vertical];
+  const { height } = useWindowDimensions();
   // Set once the password has been accepted and a one-time code emailed to this address.
   const [codeSentTo, setCodeSentTo] = useState<string>();
+  const step = codeSentTo ? 'code' : 'credentials';
+  const drawingSize = Math.min(Math.max(height * drawingShare, drawingMinSize), drawingMaxSize);
+
+  // The drawing and the back button fade in, and the card follows them up.
+  const appear = useEntrance();
+  const rise = useEntrance(theme.duration.fast);
+  const { offset, shake } = useShake();
+  const riseDistance = theme.space.xl;
+  const appearStyle = useAnimatedStyle(() => ({ opacity: appear.value }), [appear]);
+  const shakeStyle = useAnimatedStyle(
+    () => ({ transform: [{ translateX: offset.value }] }),
+    [offset],
+  );
+  const cardStyle = useAnimatedStyle(
+    () => ({
+      opacity: rise.value,
+      transform: [{ translateY: interpolate(rise.value, [0, 1], [riseDistance, 0]) }],
+    }),
+    [rise, riseDistance],
+  );
 
   function back() {
     // The keyboard would otherwise stay up over the onboarding pages.
@@ -75,42 +105,35 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
       <BrandBand share={bandShare.signIn} />
       <Screen scroll padding={screenPadding} style={styles.screen}>
         {/*
-          The card is centred on the screen, not in the space left under the
-          logo. The areas above and below it start at the same height, enough
-          for the logo, and share any spare height equally.
+          Where it is on the onboarding pages, and not part of the entrance,
+          so that the logo holds still as one screen gives way to the other.
         */}
-        <Animated.View style={[styles.above, { minHeight: logoAreaHeight, opacity: entrance }]}>
-          <Logo width={logoWidth} />
+        <View style={styles.logo}>
+          <Logo width={headerLogoWidth} />
+        </View>
+        {/*
+          The drawing and the card sit towards the top of the space under the
+          logo, where the card overlaps the band and stays clear of the keyboard.
+        */}
+        <View style={styles.above} />
+        <Animated.View aria-hidden style={[styles.drawing, appearStyle, shakeStyle]}>
+          {/* Keyed so that each step's drawing plays from the start. */}
+          <Drawing key={step} source={drawings[step]} size={drawingSize} />
         </Animated.View>
-        <Animated.View
-          style={{
-            opacity: entrance,
-            transform: [
-              {
-                translateY: entrance.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [theme.space.xl, 0],
-                }),
-              },
-            ],
-          }}
-        >
+        <Animated.View style={cardStyle}>
           <Card padding="xl" style={styles.card}>
             {codeSentTo ? (
-              <CodeForm email={codeSentTo} onBack={() => setCodeSentTo(undefined)} />
+              <CodeForm
+                email={codeSentTo}
+                onBack={() => setCodeSentTo(undefined)}
+                onRejected={shake}
+              />
             ) : (
-              <CredentialsForm onNeedsCode={setCodeSentTo} />
+              <CredentialsForm onNeedsCode={setCodeSentTo} onRejected={shake} />
             )}
           </Card>
         </Animated.View>
-        <View
-          style={[
-            styles.below,
-            // The screen keeps more clear at the top than at the bottom, so this
-            // area makes up the difference.
-            { minHeight: logoAreaHeight + Math.max(0, insets.top - insets.bottom) },
-          ]}
-        />
+        <View style={styles.below} />
       </Screen>
       {/*
         Over the band, clear of the content. The code step has its own way
@@ -120,7 +143,8 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
         <Animated.View
           style={[
             styles.back,
-            { top: insets.top + theme.space.xs, start: theme.space.sm, opacity: entrance },
+            { top: insets.top + theme.space.xs, start: theme.space.sm },
+            appearStyle,
           ]}
         >
           <Pressable
@@ -145,30 +169,49 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
   );
 }
 
-/** Runs 0 → 1 once, when the screen first shows. With reduced motion it starts at 1. */
-function useEntrance() {
+/**
+ * Runs 0 → 1 once, after `delay`, when the screen first shows. With reduced
+ * motion it goes straight to 1.
+ */
+function useEntrance(delay = 0) {
   const theme = useTheme();
   const reducedMotion = useReducedMotion();
-  const [progress] = useState(() => new Animated.Value(0));
+  const progress = useSharedValue(0);
   const duration = theme.duration.slow;
   const [x1, y1, x2, y2] = theme.easing.enter;
 
   useEffect(() => {
-    if (reducedMotion) {
-      progress.setValue(1);
-      return;
-    }
-    const animation = Animated.timing(progress, {
-      toValue: 1,
-      duration,
-      easing: Easing.bezier(x1, y1, x2, y2),
-      useNativeDriver: true,
-    });
-    animation.start();
-    return () => animation.stop();
-  }, [progress, reducedMotion, duration, x1, y1, x2, y2]);
+    progress.value = reducedMotion
+      ? 1
+      : withDelay(delay, withTiming(1, { duration, easing: Easing.bezier(x1, y1, x2, y2) }));
+  }, [progress, reducedMotion, delay, duration, x1, y1, x2, y2]);
 
   return progress;
+}
+
+/**
+ * A sideways shake, for when an attempt is turned down. `offset` is the
+ * distance to move by and `shake` starts it. With reduced motion nothing
+ * moves: the form's own messages say what went wrong.
+ */
+function useShake() {
+  const theme = useTheme();
+  const reducedMotion = useReducedMotion();
+  const offset = useSharedValue(0);
+  const distance = theme.space.sm;
+  // Four swings from side to side in all.
+  const swing = theme.duration.slow / 4;
+
+  function shake() {
+    if (reducedMotion) return;
+    offset.value = withSequence(
+      withTiming(-distance, { duration: swing / 2 }),
+      withRepeat(withTiming(distance, { duration: swing }), 3, true),
+      withTiming(0, { duration: swing / 2 }),
+    );
+  }
+
+  return { offset, shake };
 }
 
 const useStyles = makeStyles((t) => ({
@@ -180,13 +223,20 @@ const useStyles = makeStyles((t) => ({
   screen: {
     backgroundColor: 'transparent',
   },
+  logo: {
+    alignItems: 'center',
+    paddingBottom: t.space.md,
+  },
+  // Spare height goes mostly under the card.
   above: {
     flexGrow: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   below: {
-    flexGrow: 1,
+    flexGrow: 3,
+  },
+  drawing: {
+    alignItems: 'center',
+    paddingBottom: t.space.lg,
   },
   back: {
     position: 'absolute',

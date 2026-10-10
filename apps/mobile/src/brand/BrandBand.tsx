@@ -4,7 +4,7 @@ import { useWindowDimensions, View } from 'react-native';
 import { NetworkMotif } from './NetworkMotif';
 
 /** How far down the screen the band reaches on each screen that has one. */
-export const bandShare = { onboarding: 0.56, signIn: 0.44 } as const;
+export const bandShare = { onboarding: 0.56, signIn: 0.5 } as const;
 
 const motifOpacity = 0.09;
 // The motif grows with the window up to this width, so it is not huge on a tablet.
