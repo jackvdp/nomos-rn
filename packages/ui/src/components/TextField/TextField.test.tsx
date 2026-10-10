@@ -1,7 +1,7 @@
 import { createRef, useState } from 'react';
 import { AccessibilityInfo, TextInput } from 'react-native';
 
-import { renderWithTheme, screen, userEvent } from '../../test-utils';
+import { fireEvent, renderWithTheme, screen, userEvent } from '../../test-utils';
 import { TextField, type TextFieldProps } from './TextField';
 
 function Controlled(props: Omit<TextFieldProps, 'value'> & { initial?: string }) {
@@ -44,6 +44,19 @@ describe('TextField', () => {
       'Enter your work email address. Required. Use your commission address.',
     );
     expect(announce).toHaveBeenCalledWith('Enter your work email address');
+  });
+
+  test('holds the placeholder back while the label is where the text goes', async () => {
+    await renderWithTheme(<Controlled label="Work email" placeholder="name@northshire.gov" />);
+    const input = screen.getByLabelText('Work email');
+    expect(screen.queryByPlaceholderText('name@northshire.gov')).not.toBeOnTheScreen();
+
+    // Focus moves the label up, which leaves room for the placeholder.
+    await fireEvent(input, 'focus');
+    expect(screen.getByPlaceholderText('name@northshire.gov')).toBeOnTheScreen();
+
+    await fireEvent(input, 'blur');
+    expect(screen.queryByPlaceholderText('name@northshire.gov')).not.toBeOnTheScreen();
   });
 
   test('toggles password visibility', async () => {
