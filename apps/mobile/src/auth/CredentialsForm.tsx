@@ -104,6 +104,7 @@ export function CredentialsForm({ onNeedsCode, onRejected }: CredentialsFormProp
             setErrors((current) => ({ ...current, email: undefined }));
           }}
           errorText={errors.email}
+          leadingIcon="mail"
           inputMode="email"
           autoCapitalize="none"
           autoCorrect={false}
@@ -123,6 +124,7 @@ export function CredentialsForm({ onNeedsCode, onRejected }: CredentialsFormProp
             setErrors((current) => ({ ...current, password: undefined }));
           }}
           errorText={errors.password}
+          leadingIcon="lock"
           secureTextEntry
           autoCapitalize="none"
           autoCorrect={false}
