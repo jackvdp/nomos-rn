@@ -14,8 +14,9 @@ export default function App() {
     <SafeAreaProvider>
       <ThemeProvider>
         <ToastProvider>
-          {session ? <Home /> : <LoginScreen onSignedIn={setSession} />}
+          {/* The app's default. It comes first so that a screen can mount its own over it. */}
           <StatusBar style="auto" />
+          {session ? <Home /> : <LoginScreen onSignedIn={setSession} />}
         </ToastProvider>
       </ThemeProvider>
     </SafeAreaProvider>
