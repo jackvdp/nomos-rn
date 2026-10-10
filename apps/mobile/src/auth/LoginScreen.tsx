@@ -1,64 +1,80 @@
-import { makeStyles, Screen, Stack, ThemeProvider } from '@nomos/ui';
-import { StatusBar } from 'expo-status-bar';
+import { makeStyles, Screen, useTheme } from '@nomos/ui';
 import { useState } from 'react';
-import { Image } from 'react-native';
+import { Image, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CodeForm } from './CodeForm';
 import { CredentialsForm } from './CredentialsForm';
 
-// nomos-logo.png with its wordmark turned white. The original wordmark is
-// dark navy, which does not show on this screen's navy background.
-const logo = require('../../assets/nomos-logo-on-dark.png');
+// The logo as supplied, and a copy with the wordmark turned white for dark
+// backgrounds, where the original's dark navy wordmark does not show.
+const logo = {
+  light: require('../../assets/nomos-logo.png'),
+  dark: require('../../assets/nomos-logo-on-dark.png'),
+};
 const logoAspectRatio = 1888 / 427;
+// Nearly fills the width on a phone without growing past this on a tablet.
+const logoMaxWidth = 400;
 const logoLabel = 'NOMOS';
+const screenPadding = 'lg';
+// Space around the logo, on top of the screen's own padding. `bottom` is the
+// least there can be between the logo and the form.
+const logoPadding = { horizontal: 'lg', top: 'xxxl', bottom: 'lg' } as const;
 
-/**
- * Sign-in sits on the brand navy whatever the device's light or dark setting,
- * so everything on it uses the dark colours.
- */
 export function LoginScreen() {
-  return (
-    <ThemeProvider colorScheme="dark">
-      <StatusBar style="light" />
-      <LoginSteps />
-    </ThemeProvider>
-  );
-}
-
-function LoginSteps() {
+  const theme = useTheme();
   const styles = useStyles();
+  const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
+  // An image does not size itself from a width and a ratio alone, so work the size out.
+  const sidePadding = theme.space[screenPadding] + theme.space[logoPadding.horizontal];
+  const logoWidth = Math.min(windowWidth - 2 * sidePadding, logoMaxWidth);
+  const logoHeight = logoWidth / logoAspectRatio;
+  const logoAreaHeight =
+    theme.space[logoPadding.top] + logoHeight + theme.space[logoPadding.bottom];
   // Set once the password has been accepted and a one-time code emailed to this address.
   const [codeSentTo, setCodeSentTo] = useState<string>();
 
   return (
-    <Screen scroll style={styles.screen} contentStyle={styles.content}>
-      <Stack gap="xl">
+    <Screen scroll padding={screenPadding}>
+      {/*
+        The form is centred on the screen, not in the space left under the
+        logo. The areas above and below it start at the same height, enough for
+        the logo, and share any spare height equally.
+      */}
+      <View style={[styles.above, { minHeight: logoAreaHeight }]}>
         <Image
-          source={logo}
+          source={logo[theme.colorScheme]}
           accessible
           aria-label={logoLabel}
           resizeMode="contain"
-          style={styles.logo}
+          style={{ width: logoWidth, height: logoHeight }}
         />
-        {codeSentTo ? (
-          <CodeForm email={codeSentTo} onBack={() => setCodeSentTo(undefined)} />
-        ) : (
-          <CredentialsForm onNeedsCode={setCodeSentTo} />
-        )}
-      </Stack>
+      </View>
+      {codeSentTo ? (
+        <CodeForm email={codeSentTo} onBack={() => setCodeSentTo(undefined)} />
+      ) : (
+        <CredentialsForm onNeedsCode={setCodeSentTo} />
+      )}
+      <View
+        style={[
+          styles.below,
+          // The screen keeps more clear at the top than at the bottom, so this
+          // area makes up the difference.
+          { minHeight: logoAreaHeight + Math.max(0, insets.top - insets.bottom) },
+        ]}
+      />
     </Screen>
   );
 }
 
 const useStyles = makeStyles((t) => ({
-  screen: {
-    backgroundColor: t.colors.bg.brand,
+  above: {
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingTop: t.space[logoPadding.top],
   },
-  content: {
-    justifyContent: 'center',
-  },
-  logo: {
-    height: t.space.xxxl,
-    width: t.space.xxxl * logoAspectRatio,
+  below: {
+    flexGrow: 1,
   },
 }));
