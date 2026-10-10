@@ -1,14 +1,12 @@
 import { Button, Screen, Stack, Text, ThemeProvider, ToastProvider, useToast } from '@nomos/ui';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { LoginScreen } from './src/auth/LoginScreen';
-import type { Session } from './src/auth/login';
+import { useAuth } from './src/auth/useAuth';
 
 export default function App() {
-  // Held in memory only for now, so reloading the app signs you out.
-  const [session, setSession] = useState<Session | null>(null);
+  const { session } = useAuth();
 
   return (
     <SafeAreaProvider>
@@ -16,7 +14,7 @@ export default function App() {
         <ToastProvider>
           {/* The app's default. It comes first so that a screen can mount its own over it. */}
           <StatusBar style="auto" />
-          {session ? <Home /> : <LoginScreen onSignedIn={setSession} />}
+          {session ? <Home /> : <LoginScreen />}
         </ToastProvider>
       </ThemeProvider>
     </SafeAreaProvider>
@@ -26,6 +24,7 @@ export default function App() {
 // Placeholder until navigation and the first real screens land.
 function Home() {
   const toast = useToast();
+  const { signOut } = useAuth();
   return (
     <Screen>
       <Stack gap="md">
@@ -35,6 +34,7 @@ function Home() {
           label="Show a toast"
           onPress={() => toast.show({ message: 'Design library connected', tone: 'success' })}
         />
+        <Button label="Sign out" variant="secondary" onPress={signOut} />
       </Stack>
     </Screen>
   );

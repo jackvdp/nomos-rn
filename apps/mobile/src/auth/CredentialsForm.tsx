@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import type { TextInput } from 'react-native';
 
 import { failureMessage } from './failureMessage';
-import { login, type Session } from './login';
+import { useAuth } from './useAuth';
 
 // The form's wording in one place, ready to move into translations.
 const copy = {
@@ -29,12 +29,12 @@ interface FieldErrors {
 }
 
 export interface CredentialsFormProps {
-  onSignedIn: (session: Session) => void;
   /** The password was right and a one-time code has been emailed to `email`. */
   onNeedsCode: (email: string) => void;
 }
 
-export function CredentialsForm({ onSignedIn, onNeedsCode }: CredentialsFormProps) {
+export function CredentialsForm({ onNeedsCode }: CredentialsFormProps) {
+  const auth = useAuth();
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const [email, setEmail] = useState('');
@@ -46,7 +46,7 @@ export function CredentialsForm({ onSignedIn, onNeedsCode }: CredentialsFormProp
   const [confirming, setConfirming] = useState(false);
   const [elsewhere, setElsewhere] = useState<string>();
 
-  async function signIn(replaceOtherSession: boolean) {
+  async function submit(replaceOtherSession: boolean) {
     // The button blocks presses while loading, but the keyboard's Go key does not.
     if (submitting) return;
 
@@ -68,12 +68,11 @@ export function CredentialsForm({ onSignedIn, onNeedsCode }: CredentialsFormProp
 
     setSubmitting(true);
     try {
-      const result = await login(address, password, replaceOtherSession);
-      if (result.status === 'signedIn') {
-        onSignedIn(result.session);
-      } else if (result.status === 'needsCode') {
+      // On `signedIn` the session has started and the app moves on from this screen.
+      const result = await auth.signIn(address, password, replaceOtherSession);
+      if (result.status === 'needsCode') {
         onNeedsCode(address);
-      } else {
+      } else if (result.status === 'activeElsewhere') {
         setElsewhere(result.where);
         setConfirming(true);
       }
@@ -126,10 +125,10 @@ export function CredentialsForm({ onSignedIn, onNeedsCode }: CredentialsFormProp
           autoComplete="current-password"
           textContentType="password"
           returnKeyType="go"
-          onSubmitEditing={() => signIn(false)}
+          onSubmitEditing={() => submit(false)}
         />
       </Stack>
-      <Button label={copy.submit} fullWidth loading={submitting} onPress={() => signIn(false)} />
+      <Button label={copy.submit} fullWidth loading={submitting} onPress={() => submit(false)} />
       <Dialog
         visible={confirming}
         onDismiss={() => setConfirming(false)}
@@ -141,7 +140,7 @@ export function CredentialsForm({ onSignedIn, onNeedsCode }: CredentialsFormProp
             label: copy.elsewhereConfirm,
             onPress: () => {
               setConfirming(false);
-              signIn(true);
+              submit(true);
             },
           },
         ]}

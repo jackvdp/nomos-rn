@@ -2,8 +2,9 @@ import { Banner, Button, Stack, Text, TextField } from '@nomos/ui';
 import { useRef, useState } from 'react';
 import type { TextInput } from 'react-native';
 
+import { resendCode } from './authApi';
 import { failureMessage } from './failureMessage';
-import { resendCode, verifyCode, type Session } from './login';
+import { useAuth } from './useAuth';
 
 // The form's wording in one place, ready to move into translations.
 const copy = {
@@ -27,12 +28,12 @@ interface Notice {
 export interface CodeFormProps {
   /** The address the code was sent to. */
   email: string;
-  onSignedIn: (session: Session) => void;
   /** Go back to the email and password. */
   onBack: () => void;
 }
 
-export function CodeForm({ email, onSignedIn, onBack }: CodeFormProps) {
+export function CodeForm({ email, onBack }: CodeFormProps) {
+  const auth = useAuth();
   const codeRef = useRef<TextInput>(null);
   const [code, setCode] = useState('');
   const [codeError, setCodeError] = useState<string>();
@@ -51,7 +52,8 @@ export function CodeForm({ email, onSignedIn, onBack }: CodeFormProps) {
 
     setBusy('verifying');
     try {
-      onSignedIn(await verifyCode(email, entered));
+      // Once this succeeds the session has started and the app moves on from this screen.
+      await auth.verifyCode(email, entered);
     } catch (error) {
       setNotice({ tone: 'danger', message: failureMessage(error, copy.failed) });
     } finally {
