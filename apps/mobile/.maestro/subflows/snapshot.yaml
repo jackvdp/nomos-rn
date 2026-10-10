@@ -1,0 +1,24 @@
+# Compares the element with the id AREA against the reference image called
+# NAME, or records a new reference when UPDATE is true. Cropping to an element
+# of the app leaves out the status bar and home indicator, which iOS draws
+# differently from one moment to the next.
+appId: host.exp.Exponent
+---
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      true: ${UPDATE == 'true'}
+    commands:
+      - takeScreenshot:
+          path: ${NAME}
+          cropOn:
+            id: ${AREA}
+- runFlow:
+    when:
+      true: ${UPDATE != 'true'}
+    commands:
+      - assertScreenshot:
+          path: ../screenshots/${NAME}.png
+          cropOn:
+            id: ${AREA}
+          thresholdPercentage: 99.9

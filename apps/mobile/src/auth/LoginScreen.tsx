@@ -17,6 +17,9 @@ const logoAspectRatio = 1888 / 427;
 const logoMaxWidth = 400;
 const logoLabel = 'NOMOS';
 const screenPadding = 'lg';
+// The visual regression test screenshots the view with this id: the whole
+// screen apart from the status bar and home indicator.
+const contentTestID = 'sign-in-screen';
 // Space around the logo, on top of the screen's own padding. `bottom` is the
 // least there can be between the logo and the form.
 const logoPadding = { horizontal: 'lg', top: 'xxxl', bottom: 'lg' } as const;
@@ -37,38 +40,43 @@ export function LoginScreen() {
 
   return (
     <Screen scroll padding={screenPadding}>
-      {/*
-        The form is centred on the screen, not in the space left under the
-        logo. The areas above and below it start at the same height, enough for
-        the logo, and share any spare height equally.
-      */}
-      <View style={[styles.above, { minHeight: logoAreaHeight }]}>
-        <Image
-          source={logo[theme.colorScheme]}
-          accessible
-          aria-label={logoLabel}
-          resizeMode="contain"
-          style={{ width: logoWidth, height: logoHeight }}
+      <View testID={contentTestID} style={styles.content}>
+        {/*
+          The form is centred on the screen, not in the space left under the
+          logo. The areas above and below it start at the same height, enough
+          for the logo, and share any spare height equally.
+        */}
+        <View style={[styles.above, { minHeight: logoAreaHeight }]}>
+          <Image
+            source={logo[theme.colorScheme]}
+            accessible
+            aria-label={logoLabel}
+            resizeMode="contain"
+            style={{ width: logoWidth, height: logoHeight }}
+          />
+        </View>
+        {codeSentTo ? (
+          <CodeForm email={codeSentTo} onBack={() => setCodeSentTo(undefined)} />
+        ) : (
+          <CredentialsForm onNeedsCode={setCodeSentTo} />
+        )}
+        <View
+          style={[
+            styles.below,
+            // The screen keeps more clear at the top than at the bottom, so this
+            // area makes up the difference.
+            { minHeight: logoAreaHeight + Math.max(0, insets.top - insets.bottom) },
+          ]}
         />
       </View>
-      {codeSentTo ? (
-        <CodeForm email={codeSentTo} onBack={() => setCodeSentTo(undefined)} />
-      ) : (
-        <CredentialsForm onNeedsCode={setCodeSentTo} />
-      )}
-      <View
-        style={[
-          styles.below,
-          // The screen keeps more clear at the top than at the bottom, so this
-          // area makes up the difference.
-          { minHeight: logoAreaHeight + Math.max(0, insets.top - insets.bottom) },
-        ]}
-      />
     </Screen>
   );
 }
 
 const useStyles = makeStyles((t) => ({
+  content: {
+    flexGrow: 1,
+  },
   above: {
     flexGrow: 1,
     alignItems: 'center',

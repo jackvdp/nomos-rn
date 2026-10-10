@@ -42,3 +42,6 @@ yarn-error.*
 
 # Storybook
 storybook-static/
+
+# Maestro: what a failed visual test leaves beside the reference images
+apps/mobile/.maestro/screenshots/*_diff.png

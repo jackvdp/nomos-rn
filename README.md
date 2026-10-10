@@ -28,6 +28,7 @@ npm run mobile              # start the app (Expo)
 npm run storybook           # start on-device Storybook (Expo)
 npm run typecheck           # tsc in every workspace
 npm test                    # Jest in every workspace
+npm run test:visual -w @nomos/mobile   # screenshot comparison on the iOS simulator
 ```
 
 To run a script in a single workspace, use `-w`, e.g.
@@ -48,6 +49,48 @@ To run a script in a single workspace, use `-w`, e.g.
   `npx expo install <pkg>`, run from that app's folder so Expo picks the
   SDK-matched version, and add it to the library's `peerDependencies` if the
   library uses it.
+
+## Visual regression test
+
+`npm run test:visual -w @nomos/mobile` opens the app on the iOS simulator,
+screenshots the sign-in screen in light and dark mode, and compares each
+screenshot with its reference image in `apps/mobile/.maestro/screenshots/`.
+It fails when a screenshot is less than a 99.9% match for its reference, and
+leaves a `_diff.png` beside the reference with the changed areas boxed in red.
+
+Set up once:
+
+```sh
+brew tap mobile-dev-inc/tap
+brew trust --formula mobile-dev-inc/tap/maestro
+brew install mobile-dev-inc/tap/maestro git-lfs
+git lfs install
+```
+
+Before each run:
+
+- Boot the **iPhone 16e** simulator. The references were recorded on it, on
+  iOS 18.6, and another model has a different screen.
+- Start the dev server with `npm run mobile` and open the app in Expo Go once.
+
+After a change that is meant to alter the screen, run
+`npm run test:visual:update -w @nomos/mobile`, look at the new images, and
+commit them.
+
+How it works:
+
+- [Maestro](https://maestro.dev) drives the simulator. The steps are in
+  `apps/mobile/.maestro/sign-in.yaml`.
+- `apps/mobile/.maestro/run.sh` fixes what would otherwise change between
+  runs: it pins the clock, sets light or dark mode, and hides Expo Go's
+  floating tools button. It puts all three back when it finishes.
+- Each screenshot is cropped to the app's own content. The status bar and
+  home indicator are left out, because iOS draws them differently from one
+  moment to the next.
+- The reference images are stored with Git LFS.
+
+It covers only the first screen. The states that follow a sign-in attempt need
+a reply from the server, and the app in Expo Go always talks to the real one.
 
 ## Version pins in the root package.json
 

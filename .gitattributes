@@ -1,0 +1,2 @@
+# Reference images for the visual regression test are stored with Git LFS.
+apps/mobile/.maestro/screenshots/*.png filter=lfs diff=lfs merge=lfs -text

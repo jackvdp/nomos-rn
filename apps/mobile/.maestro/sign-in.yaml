@@ -1,0 +1,14 @@
+# Visual regression test for the sign-in screen. Start it with run.sh, which
+# prepares the simulator and passes in APP_URL, SCHEME and UPDATE.
+appId: host.exp.Exponent
+env:
+  AREA: sign-in-screen
+---
+- openLink: ${APP_URL}
+- extendedWaitUntil:
+    visible: Sign in to NOMOS
+    timeout: 120000
+- runFlow:
+    file: subflows/snapshot.yaml
+    env:
+      NAME: sign-in-${SCHEME}
