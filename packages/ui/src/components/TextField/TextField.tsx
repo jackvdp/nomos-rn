@@ -5,6 +5,7 @@ import {
   I18nManager,
   Platform,
   Pressable,
+  StyleSheet,
   TextInput,
   View,
   type StyleProp,
@@ -80,7 +81,7 @@ const raisedLabelHeight = body.lineHeight * raisedLabelScale;
 // own line is about 1.2 times its size, so in a taller line the text sits low
 // by half the difference.
 const iosTextSag = Platform.OS === 'ios' ? (body.lineHeight - 1.2 * body.fontSize) / 2 : 0;
-// How far the glow reaches round a focused field, and how strong it is.
+// How far the glow reaches below a focused field, and how strong it is.
 const haloSpread = 4;
 const haloOpacity = 0.2;
 
@@ -122,11 +123,16 @@ export function TextField({
   const invalid = Boolean(errorText);
   useAnnounceError(errorText);
 
-  const ringColor = focused
-    ? theme.colors.border.focus
-    : invalid
-      ? theme.colors.border.danger
-      : undefined;
+  // The line under the field is a hairline at rest. It is thicker, and
+  // coloured, while the field has focus or is invalid.
+  const emphasised = !disabled && (focused || invalid);
+  const lineColor = disabled
+    ? theme.colors.action.disabled.border
+    : focused
+      ? theme.colors.border.focus
+      : invalid
+        ? theme.colors.border.danger
+        : theme.colors.border.strong;
   const iconColor = disabled ? theme.colors.text.disabled : theme.colors.text.secondary;
   const counting = maxLength !== undefined && showCount;
   const message = errorText ?? helperText;
@@ -139,7 +145,7 @@ export function TextField({
   return (
     <View style={style}>
       <View>
-        {/* A soft glow round the field while it has focus. */}
+        {/* A soft glow under the field while it has focus. */}
         <Animated.View
           style={[styles.halo, { backgroundColor: theme.colors.border.focus }, motion.haloStyle]}
         />
@@ -149,12 +155,7 @@ export function TextField({
             multiline && styles.fieldMultiline,
             {
               backgroundColor: disabled ? theme.colors.action.disabled.bg : theme.colors.bg.surface,
-              borderColor: disabled
-                ? theme.colors.action.disabled.border
-                : (ringColor ?? theme.colors.border.strong),
             },
-            // An outline on top of the border makes a 2dp ring without shifting the layout.
-            ringColor !== undefined && !disabled && [styles.ring, { outlineColor: ringColor }],
           ]}
         >
           {leadingIcon ? (
@@ -249,6 +250,13 @@ export function TextField({
               <Icon name={revealed ? 'eye-off' : 'eye'} color={iconColor} />
             </Pressable>
           ) : null}
+          <View
+            style={[
+              styles.line,
+              emphasised && styles.lineEmphasised,
+              { backgroundColor: lineColor },
+            ]}
+          />
         </View>
       </View>
       {/* Mounted even when empty so Android and web announce a message when it appears. */}
@@ -328,11 +336,10 @@ function useFieldMotion(raised: boolean, focused: boolean, multiline: boolean) {
 
 /**
  * The space above the raised label, and below the text, in a single-line
- * field. The label and the text share what is left inside the border.
+ * field. The label and the text share what is left of the field's height.
  */
 function fieldEdge(theme: Theme) {
-  const inside = theme.sizes.control.lg - 2 * theme.borderWidths.thin;
-  return (inside - body.lineHeight - raisedLabelHeight) / 2;
+  return (theme.sizes.control.lg - body.lineHeight - raisedLabelHeight) / 2;
 }
 
 /**
@@ -363,13 +370,15 @@ const useStyles = makeStyles((t) => {
   // Where the text's line starts: under the raised label.
   const textTop = edge + raisedLabelHeight;
   return {
+    // A band just below the field, as wide as its line.
     halo: {
       position: 'absolute',
-      top: -haloSpread,
       bottom: -haloSpread,
-      start: -haloSpread,
-      end: -haloSpread,
-      borderRadius: t.radii.xl + haloSpread,
+      start: t.space.none,
+      end: t.space.none,
+      height: haloSpread,
+      borderBottomStartRadius: haloSpread,
+      borderBottomEndRadius: haloSpread,
     },
     field: {
       flexDirection: 'row',
@@ -377,15 +386,25 @@ const useStyles = makeStyles((t) => {
       gap: t.space.sm,
       minHeight: height,
       paddingHorizontal: t.space.lg,
-      borderRadius: t.radii.xl,
-      borderWidth: t.borderWidths.thin,
+      // Square at the bottom, where the line runs.
+      borderTopStartRadius: t.radii.xl,
+      borderTopEndRadius: t.radii.xl,
     },
     fieldMultiline: {
       alignItems: 'flex-start',
     },
-    ring: {
-      outlineWidth: t.borderWidths.thin,
-      outlineStyle: 'solid',
+    // The field's only border. It lies over the bottom edge, so getting
+    // thicker does not shift the layout.
+    line: {
+      position: 'absolute',
+      bottom: t.space.none,
+      start: t.space.none,
+      end: t.space.none,
+      height: StyleSheet.hairlineWidth,
+      pointerEvents: 'none',
+    },
+    lineEmphasised: {
+      height: t.borderWidths.thick,
     },
     // Holds the input with the label over it.
     body: {
@@ -410,7 +429,7 @@ const useStyles = makeStyles((t) => {
       paddingBottom: edge,
       fontSize: t.typography.body.fontSize,
       fontFamily: t.typography.body.fontFamily,
-      // The container draws the focus ring; stop browsers adding their own.
+      // The line under the field shows focus; stop browsers adding their own ring.
       outlineWidth: t.borderWidths.none,
     },
     inputMultiline: {

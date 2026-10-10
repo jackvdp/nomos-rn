@@ -63,8 +63,14 @@ export interface OnboardingScreenProps {
   /** The sign-in screen is showing instead, or is about to. */
   hidden: boolean;
   /**
-   * How far this screen has given way to the sign-in screen under it: 0 when
-   * it is fully showing, 1 when it is gone. The screen fades as this rises.
+   * The screen is on its way in from the splash screen. Until it is in place
+   * its logo is left to `SignedOut`, which brings the splash screen's one to
+   * the same spot, and its drawing waits.
+   */
+  arriving: boolean;
+  /**
+   * How far this screen is out of sight: 0 when it is fully showing, 1 when
+   * it is gone. The screen fades as this rises.
    */
   cover: SharedValue<number>;
   /** The user has asked for the sign-in screen. */
@@ -78,7 +84,7 @@ export interface OnboardingScreenProps {
  * It has no background of its own: it goes over a `BrandBand` reaching
  * `bandShare.onboarding` of the way down.
  */
-export function OnboardingScreen({ hidden, cover, onSignIn }: OnboardingScreenProps) {
+export function OnboardingScreen({ hidden, arriving, cover, onSignIn }: OnboardingScreenProps) {
   const theme = useTheme();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
@@ -131,7 +137,7 @@ export function OnboardingScreen({ hidden, cover, onSignIn }: OnboardingScreenPr
           </Stack>
         }
       >
-        <View style={[styles.logo, { height: logoAreaHeight }]}>
+        <View style={[styles.logo, { height: logoAreaHeight }, arriving && styles.unseen]}>
           <Logo width={headerLogoWidth} />
         </View>
         <Animated.ScrollView
@@ -148,7 +154,7 @@ export function OnboardingScreen({ hidden, cover, onSignIn }: OnboardingScreenPr
                 <Drawing
                   source={page.drawing}
                   size={drawingSize}
-                  playing={index === current && !hidden}
+                  playing={index === current && !hidden && !arriving}
                 />
               </View>
               <Stack gap="sm" padding="xl" style={styles.words}>
@@ -309,6 +315,10 @@ const useStyles = makeStyles((t) => ({
   logo: {
     alignItems: 'center',
     paddingTop: t.space.lg,
+  },
+  // Keeps its place in the layout.
+  unseen: {
+    opacity: 0,
   },
   drawing: {
     alignItems: 'center',
