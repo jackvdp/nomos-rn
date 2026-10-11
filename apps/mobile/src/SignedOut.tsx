@@ -41,8 +41,9 @@ export interface SignedOutProps {
  * Both screens sit on one brand band, which lives here. It reaches a
  * different way down each screen, and as one gives way to the other the band
  * itself moves between the two, while the screens' own content cross-fades
- * over it. When the app starts, the band covers the whole screen as the
- * splash screen does, and draws up to where the onboarding pages have it.
+ * over it. It scrolls with the screen that is showing. When the app starts,
+ * the band covers the whole screen as the splash screen does, and draws up to
+ * where the onboarding pages have it.
  */
 export function SignedOut({ onboarded, onOnboarded, fromSplash, onArrived }: SignedOutProps) {
   const theme = useTheme();
@@ -75,6 +76,14 @@ export function SignedOut({ onboarded, onOnboarded, fromSplash, onArrived }: Sig
       ),
     [change, arrival.progress],
   );
+  // How far each screen has been scrolled. The band scrolls with whichever
+  // is showing, and goes from one to the other as the screens change.
+  const onboardingScroll = useSharedValue(0);
+  const signInScroll = useSharedValue(0);
+  const scroll = useDerivedValue(
+    () => interpolate(change.value, [0, 1], [onboardingScroll.value, signInScroll.value]),
+    [change, onboardingScroll, signInScroll],
+  );
 
   // Both screens have the logo's top this far down.
   const headerLogoTop = insets.top + theme.space.lg;
@@ -99,8 +108,10 @@ export function SignedOut({ onboarded, onOnboarded, fromSplash, onArrived }: Sig
     <View style={styles.root}>
       {/* The band is dark in both colour schemes, so the status bar is light in both. */}
       <StatusBar style="light" />
-      <BrandBand share={share} motif={arrival.progress} />
-      {signInMounted && <LoginScreen reveal={change} onBack={() => setScreen('onboarding')} />}
+      <BrandBand share={share} motif={arrival.progress} scroll={scroll} />
+      {signInMounted && (
+        <LoginScreen reveal={change} scroll={signInScroll} onBack={() => setScreen('onboarding')} />
+      )}
       <View
         aria-hidden={onSignIn}
         style={[StyleSheet.absoluteFill, onSignIn && styles.untouchable]}
@@ -109,6 +120,7 @@ export function SignedOut({ onboarded, onOnboarded, fromSplash, onArrived }: Sig
           hidden={onSignIn}
           arriving={fromSplash}
           cover={cover}
+          scroll={onboardingScroll}
           onSignIn={() => {
             setSignInMounted(true);
             setScreen('signIn');

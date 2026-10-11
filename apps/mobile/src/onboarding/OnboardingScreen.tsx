@@ -7,6 +7,7 @@ import {
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  type ScrollView,
 } from 'react-native';
 import Animated, {
   Extrapolation,
@@ -73,6 +74,8 @@ export interface OnboardingScreenProps {
    * it is gone. The screen fades as this rises.
    */
   cover: SharedValue<number>;
+  /** Kept at how far the screen has been scrolled, for the band to scroll with it. */
+  scroll: SharedValue<number>;
   /** The user has asked for the sign-in screen. */
   onSignIn: () => void;
 }
@@ -84,12 +87,20 @@ export interface OnboardingScreenProps {
  * It has no background of its own: it goes over a `BrandBand` reaching
  * `bandShare.onboarding` of the way down.
  */
-export function OnboardingScreen({ hidden, arriving, cover, onSignIn }: OnboardingScreenProps) {
+export function OnboardingScreen({
+  hidden,
+  arriving,
+  cover,
+  scroll,
+  onSignIn,
+}: OnboardingScreenProps) {
   const theme = useTheme();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   const reducedMotion = useReducedMotion();
   const { width, height } = useWindowDimensions();
+  const scroller = useAnimatedRef<ScrollView>();
+  useScrollOffset(scroller, scroll);
   const pager = useAnimatedRef<Animated.ScrollView>();
   const offset = useScrollOffset(pager);
   // Where the pager is, in pages: 1.5 is half-way from the second page to the
@@ -128,6 +139,9 @@ export function OnboardingScreen({ hidden, arriving, cover, onSignIn }: Onboardi
     <Animated.View style={[styles.root, rootStyle]}>
       <Screen
         scroll
+        scrollRef={scroller}
+        // The band reaches up behind the status bar, and scrolls with the content.
+        scrollUnderStatusBar
         padding="none"
         style={styles.screen}
         footer={
