@@ -12,6 +12,9 @@ export interface Session {
 // `useAuth`. It is held in memory only for now, so reloading the app signs
 // you out.
 let session: Session | null = null;
+// Whether the last session ended because the server would no longer renew
+// it, rather than because the user signed out.
+let expired = false;
 // The organisation that requests are for, by its short name in lower case:
 // the first part of its NOMOS web address. It is set when a sign-in starts
 // and kept after sign-out, so that the sign-in form can start with it.
@@ -25,14 +28,31 @@ export function getSession() {
   return session;
 }
 
-/** Starts a session, or ends the current one with `null`. */
+/**
+ * Starts a session, replaces the current one's tokens, or ends it with
+ * `null`.
+ */
 export function setSession(next: Session | null) {
   session = next;
-  if (!next) {
+  if (next) {
+    expired = false;
+  } else {
     // The next sign-in gets a fresh device id, as on the web app.
     pendingDeviceId = undefined;
   }
   listeners.forEach((listener) => listener());
+}
+
+/** Ends the session because the server will no longer renew it. */
+export function expireSession() {
+  // Set first: the sign-in form reads it as soon as the session ends.
+  expired = true;
+  setSession(null);
+}
+
+/** Whether the last session was ended by `expireSession`. It stays so until the next one starts. */
+export function hasSessionExpired() {
+  return expired;
 }
 
 /** Calls `listener` whenever the session starts or ends. Returns a function that stops it. */
