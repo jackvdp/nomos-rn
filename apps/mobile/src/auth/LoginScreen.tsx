@@ -7,6 +7,7 @@ import {
   Pressable,
   useWindowDimensions,
   View,
+  type KeyboardEvent,
 } from 'react-native';
 import Animated, {
   Easing,
@@ -76,7 +77,10 @@ export function LoginScreen({ reveal, onBack }: LoginScreenProps) {
   const entrance = useEntrance();
   const arrival = useDerivedValue(() => Math.min(entrance.value, reveal.value), [entrance, reveal]);
   const { offset, shake } = useShake();
+  const keyboardUp = useKeyboardUp();
   const riseDistance = theme.space.xl;
+  // The drawing with the gap under it.
+  const drawingRoom = drawingSize + theme.space.lg;
   // The drawing and the back button fade in, and the card comes up with them.
   const appearStyle = useAnimatedStyle(() => ({ opacity: arrival.value }), [arrival]);
   const shakeStyle = useAnimatedStyle(
@@ -89,6 +93,16 @@ export function LoginScreen({ reveal, onBack }: LoginScreenProps) {
       transform: [{ translateY: (1 - arrival.value) * riseDistance }],
     }),
     [arrival, riseDistance],
+  );
+
+  // The drawing folds away while the keyboard is up, which brings the form
+  // up clear of it.
+  const roomStyle = useAnimatedStyle(
+    () => ({
+      height: (1 - keyboardUp.value) * drawingRoom,
+      opacity: 1 - keyboardUp.value,
+    }),
+    [keyboardUp, drawingRoom],
   );
 
   function back() {
@@ -130,9 +144,11 @@ export function LoginScreen({ reveal, onBack }: LoginScreenProps) {
           logo, where the card overlaps the band and stays clear of the keyboard.
         */}
         <View style={styles.above} />
-        <Animated.View aria-hidden style={[styles.drawing, appearStyle, shakeStyle]}>
-          {/* Keyed so that each step's drawing plays from the start. */}
-          <Drawing key={step} source={drawings[step]} size={drawingSize} />
+        <Animated.View aria-hidden style={[styles.drawingRoom, roomStyle]}>
+          <Animated.View style={[styles.drawing, appearStyle, shakeStyle]}>
+            {/* Keyed so that each step's drawing plays from the start. */}
+            <Drawing key={step} source={drawings[step]} size={drawingSize} />
+          </Animated.View>
         </Animated.View>
         <Animated.View style={cardStyle}>
           <Card padding="xl" style={styles.card}>
@@ -201,6 +217,41 @@ function useEntrance() {
 }
 
 /**
+ * 1 while the on-screen keyboard is up and 0 while it is away, moving
+ * between the two as the keyboard does. With reduced motion it changes at
+ * once.
+ */
+function useKeyboardUp() {
+  const theme = useTheme();
+  const reducedMotion = useReducedMotion();
+  const up = useSharedValue(0);
+  const fallback = theme.duration.normal;
+  const [x1, y1, x2, y2] = theme.easing.standard;
+
+  useEffect(() => {
+    // iOS says before the keyboard moves, and how long it will take. Android
+    // only says once it has moved.
+    const [showing, hiding] =
+      Platform.OS === 'ios'
+        ? (['keyboardWillShow', 'keyboardWillHide'] as const)
+        : (['keyboardDidShow', 'keyboardDidHide'] as const);
+    const move = (to: 0 | 1) => (event: KeyboardEvent) => {
+      up.value = withTiming(to, {
+        duration: reducedMotion ? 0 : event.duration || fallback,
+        easing: Easing.bezier(x1, y1, x2, y2),
+      });
+    };
+    const subscriptions = [
+      Keyboard.addListener(showing, move(1)),
+      Keyboard.addListener(hiding, move(0)),
+    ];
+    return () => subscriptions.forEach((subscription) => subscription.remove());
+  }, [up, reducedMotion, fallback, x1, y1, x2, y2]);
+
+  return up;
+}
+
+/**
  * A sideways shake, for when an attempt is turned down. `offset` is the
  * distance to move by and `shake` starts it. With reduced motion nothing
  * moves: the form's own messages say what went wrong.
@@ -243,6 +294,10 @@ const useStyles = makeStyles((t) => ({
   },
   below: {
     flexGrow: 3,
+  },
+  // Clips the drawing as it folds away.
+  drawingRoom: {
+    overflow: 'hidden',
   },
   drawing: {
     alignItems: 'center',
