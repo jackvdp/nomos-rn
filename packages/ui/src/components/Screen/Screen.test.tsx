@@ -1,19 +1,30 @@
-import { StyleSheet } from 'react-native';
+import { createRef } from 'react';
+import { StyleSheet, View, type ScrollView } from 'react-native';
 
-import { renderWithTheme, screen } from '../../test-utils';
+import { fireEvent, renderWithTheme, screen } from '../../test-utils';
 import { lightTheme } from '../../theme';
 import { Button } from '../Button';
 import { Text } from '../Text';
-import { Screen } from './Screen';
+import { TextField } from '../TextField';
+import { Screen, type ScreenProps } from './Screen';
 
 // test-utils renders inside a SafeAreaProvider with these insets.
 const insets = { top: 47, bottom: 34 };
 const { space } = lightTheme;
 
+type Element = ReturnType<typeof screen.getByText>;
+
+/** The ScrollView that `element` is in. */
+function scrollViewAround(element: Element) {
+  let around = element.parent;
+  while (around && around.type !== 'RCTScrollView') around = around.parent;
+  if (!around) throw new Error('The element is not in a ScrollView.');
+  return around;
+}
+
 // Jest's ScrollView holds its content container's style as a prop of its own.
 function scrollContentStyle(text: string) {
-  const scrollView = screen.getByText(text).parent?.parent;
-  return StyleSheet.flatten(scrollView?.props.contentContainerStyle);
+  return StyleSheet.flatten(scrollViewAround(screen.getByText(text)).props.contentContainerStyle);
 }
 
 describe('Screen', () => {
@@ -105,5 +116,57 @@ describe('Screen', () => {
     );
     expect(screen.getByTestId('screen')).toHaveStyle({ paddingTop: insets.top });
     expect(scrollContentStyle('Amara Okafor')).toMatchObject({ paddingTop: space.lg });
+  });
+
+  describe('with a field that takes focus', () => {
+    // How far down the content the field is, which only the device can say.
+    const fieldTop = 400;
+
+    /** A scrolling screen with a field in it, and its ScrollView. */
+    async function renderWithField(props?: ScreenProps) {
+      jest
+        .spyOn(View.prototype, 'measureLayout')
+        .mockImplementation((_content, onSuccess) => onSuccess(0, fieldTop, 300, 56));
+      const scrollRef = createRef<ScrollView>();
+      await renderWithTheme(
+        <Screen scroll scrollRef={scrollRef} {...props}>
+          <TextField label="Work email" value="" />
+        </Screen>,
+      );
+      const scrollView = scrollRef.current!;
+      // Jest's ScrollView has no content view to measure the field against.
+      Object.assign(scrollView, { getInnerViewRef: () => ({}) });
+      jest.mocked(scrollView.scrollTo).mockClear();
+      return scrollView;
+    }
+
+    afterEach(() => jest.restoreAllMocks());
+
+    test('scrolls the field up to the top of the screen', async () => {
+      const scrollView = await renderWithField();
+      await fireEvent(screen.getByLabelText('Work email'), 'focus');
+      expect(scrollView.scrollTo).toHaveBeenCalledWith({ y: fieldTop - space.lg, animated: true });
+    });
+
+    test('keeps the field clear of the status bar when it scrolls under that', async () => {
+      const scrollView = await renderWithField({ scrollUnderStatusBar: true });
+      await fireEvent(screen.getByLabelText('Work email'), 'focus');
+      expect(scrollView.scrollTo).toHaveBeenCalledWith({
+        y: fieldTop - insets.top - space.lg,
+        animated: true,
+      });
+    });
+
+    test('scrolls again when the keyboard changes the room, until the field loses focus', async () => {
+      const scrollView = await renderWithField();
+      const input = screen.getByLabelText('Work email');
+      await fireEvent(input, 'focus');
+      await fireEvent(scrollViewAround(input), 'layout');
+      expect(scrollView.scrollTo).toHaveBeenCalledTimes(2);
+
+      await fireEvent(input, 'blur');
+      await fireEvent(scrollViewAround(input), 'layout');
+      expect(scrollView.scrollTo).toHaveBeenCalledTimes(2);
+    });
   });
 });

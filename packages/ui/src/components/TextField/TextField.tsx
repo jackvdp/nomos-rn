@@ -22,6 +22,7 @@ import Animated, {
 import { makeStyles, useTheme, type Theme } from '../../theme';
 import { useReducedMotion } from '../../utils';
 import { Icon, type IconName } from '../Icon';
+import { useScreenScroll } from '../Screen';
 import { Text } from '../Text';
 
 /** An icon button at the end of the field, such as "Scan QR code". */
@@ -88,6 +89,9 @@ const haloOpacity = 0.2;
 /**
  * A labelled text input for forms: sign-in, profile details, incident
  * reports. Always shows its label; use SearchField for search boxes.
+ *
+ * In a scrolling `Screen` it scrolls up to the top of the screen when it
+ * takes focus, which leaves it well clear of the keyboard.
  */
 export function TextField({
   label,
@@ -120,6 +124,8 @@ export function TextField({
   const styles = useStyles();
   const [focused, setFocused] = useState(false);
   const [revealed, setRevealed] = useState(false);
+  const screenScroll = useScreenScroll();
+  const field = useRef<View>(null);
   const invalid = Boolean(errorText);
   useAnnounceError(errorText);
 
@@ -143,7 +149,7 @@ export function TextField({
   const labelColor = disabled ? 'disabled' : invalid ? 'danger' : focused ? 'link' : 'secondary';
 
   return (
-    <View style={style}>
+    <View ref={field} style={style}>
       <View>
         {/* A soft glow under the field while it has focus. */}
         <Animated.View
@@ -198,10 +204,12 @@ export function TextField({
               placeholder={raised ? rest.placeholder : undefined}
               onFocus={(event) => {
                 setFocused(true);
+                if (field.current) screenScroll?.reveal(field.current);
                 onFocus?.(event);
               }}
               onBlur={(event) => {
                 setFocused(false);
+                if (field.current) screenScroll?.release(field.current);
                 onBlur?.(event);
               }}
               style={[
