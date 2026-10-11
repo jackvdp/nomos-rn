@@ -1,3 +1,5 @@
+import { StyleSheet } from 'react-native';
+
 import { renderWithTheme, screen } from '../../test-utils';
 import { lightTheme } from '../../theme';
 import { Button } from '../Button';
@@ -7,6 +9,12 @@ import { Screen } from './Screen';
 // test-utils renders inside a SafeAreaProvider with these insets.
 const insets = { top: 47, bottom: 34 };
 const { space } = lightTheme;
+
+// Jest's ScrollView holds its content container's style as a prop of its own.
+function scrollContentStyle(text: string) {
+  const scrollView = screen.getByText(text).parent?.parent;
+  return StyleSheet.flatten(scrollView?.props.contentContainerStyle);
+}
 
 describe('Screen', () => {
   test('renders children, header and footer', async () => {
@@ -60,5 +68,42 @@ describe('Screen', () => {
     );
     expect(screen.getByTestId('screen')).toHaveStyle({ paddingTop: 0 });
     expect(screen.getByText('Amara Okafor').parent).toHaveStyle({ paddingBottom: insets.bottom });
+  });
+
+  test('stops a scrolling screen below the status bar', async () => {
+    await renderWithTheme(
+      <Screen testID="screen" scroll>
+        <Text>Amara Okafor</Text>
+      </Screen>,
+    );
+    expect(screen.getByTestId('screen')).toHaveStyle({ paddingTop: insets.top });
+    expect(scrollContentStyle('Amara Okafor')).toMatchObject({ paddingTop: space.lg });
+  });
+
+  test('can let the content scroll under the status bar, starting clear of it', async () => {
+    await renderWithTheme(
+      <Screen testID="screen" scroll scrollUnderStatusBar>
+        <Text>Amara Okafor</Text>
+      </Screen>,
+    );
+    expect(screen.getByTestId('screen')).toHaveStyle({ paddingTop: 0 });
+    expect(scrollContentStyle('Amara Okafor')).toMatchObject({
+      paddingTop: space.lg + insets.top,
+    });
+  });
+
+  test('keeps a header, and the content under it, below the status bar', async () => {
+    await renderWithTheme(
+      <Screen
+        testID="screen"
+        scroll
+        scrollUnderStatusBar
+        header={<Text variant="headingSm">Profile</Text>}
+      >
+        <Text>Amara Okafor</Text>
+      </Screen>,
+    );
+    expect(screen.getByTestId('screen')).toHaveStyle({ paddingTop: insets.top });
+    expect(scrollContentStyle('Amara Okafor')).toMatchObject({ paddingTop: space.lg });
   });
 });

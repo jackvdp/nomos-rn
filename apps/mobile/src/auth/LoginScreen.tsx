@@ -7,11 +7,14 @@ import {
   Pressable,
   useWindowDimensions,
   View,
+  type ScrollView,
 } from 'react-native';
 import Animated, {
   Easing,
+  useAnimatedRef,
   useAnimatedStyle,
   useDerivedValue,
+  useScrollOffset,
   useSharedValue,
   withRepeat,
   withSequence,
@@ -47,6 +50,8 @@ export interface LoginScreenProps {
    * with it, and the card rises with it.
    */
   reveal: SharedValue<number>;
+  /** Kept at how far the screen has been scrolled, for the band to scroll with it. */
+  scroll: SharedValue<number>;
   /** Go back to the onboarding pages. */
   onBack: () => void;
 }
@@ -58,11 +63,20 @@ export interface LoginScreenProps {
  * It has no background of its own: it goes over a `BrandBand` reaching
  * `bandShare.signIn` of the way down.
  */
-export function LoginScreen({ reveal, onBack }: LoginScreenProps) {
+export function LoginScreen({ reveal, scroll, onBack }: LoginScreenProps) {
   const theme = useTheme();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
+  const scroller = useAnimatedRef<ScrollView>();
+  useScrollOffset(scroller, scroll);
+  // The screen starts at the top the next time it shows, wherever it was left.
+  useEffect(
+    () => () => {
+      scroll.value = 0;
+    },
+    [scroll],
+  );
   // Set once the password has been accepted and a one-time code emailed to this address.
   const [codeSentTo, setCodeSentTo] = useState<string>();
   const step = codeSentTo ? 'code' : 'credentials';
@@ -116,7 +130,14 @@ export function LoginScreen({ reveal, onBack }: LoginScreenProps) {
 
   return (
     <View style={styles.root}>
-      <Screen scroll padding={screenPadding} style={styles.screen}>
+      <Screen
+        scroll
+        scrollRef={scroller}
+        // The band reaches up behind the status bar, and scrolls with the content.
+        scrollUnderStatusBar
+        padding={screenPadding}
+        style={styles.screen}
+      >
         {/*
           Where it is on the onboarding pages, and left out of the entrance
           and of `reveal`, so that the logo holds still as one screen gives

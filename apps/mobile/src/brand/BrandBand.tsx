@@ -34,14 +34,19 @@ export interface BrandBandProps {
   share: SharedValue<number>;
   /** How much of the motif shows, from 0 to 1. All of it when left out. */
   motif?: SharedValue<number>;
+  /**
+   * How far the content over the band has been scrolled. The band, motif and
+   * all, goes up by as much, so that it scrolls with the content.
+   */
+  scroll?: SharedValue<number>;
 }
 
 /**
  * The brand-coloured band behind the top of a screen, with a curved lower
  * edge. It is dark in both colour schemes. Put it before the screen's
- * content, which then scrolls over it.
+ * content, and give it `scroll` if the content scrolls.
  */
-export function BrandBand({ share, motif }: BrandBandProps) {
+export function BrandBand({ share, motif, scroll }: BrandBandProps) {
   const theme = useTheme();
   const styles = useStyles();
   const { width, height } = useWindowDimensions();
@@ -55,8 +60,8 @@ export function BrandBand({ share, motif }: BrandBandProps) {
 
   // The band is laid out just above the screen and moved down into it.
   const bandStyle = useAnimatedStyle(
-    () => ({ transform: [{ translateY: share.value * height }] }),
-    [share, height],
+    () => ({ transform: [{ translateY: share.value * height - (scroll ? scroll.value : 0) }] }),
+    [share, height, scroll],
   );
   // Moved back by as much, so that the motif keeps its place on the screen
   // while the band's edge moves.
