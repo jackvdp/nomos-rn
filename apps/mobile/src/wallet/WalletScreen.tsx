@@ -16,7 +16,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import { FlatList, RefreshControl, View } from 'react-native';
 
-import { failureMessage } from '../api/failureMessage';
 import { useCredentials } from './useCredentials';
 import type { Credential, CredentialStatus } from './walletApi';
 
@@ -110,7 +109,7 @@ export function WalletScreen() {
               icon="warning"
               tone="warning"
               title={copy.failedTitle}
-              description={failureMessage(error, copy.failed)}
+              description={error?.kind === 'refused' ? error.message : copy.failed}
               action={{ label: copy.retry, onPress: reload, leadingIcon: 'refresh' }}
             />
           )

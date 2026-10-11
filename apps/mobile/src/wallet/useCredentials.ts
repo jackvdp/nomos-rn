@@ -1,15 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { refusalMessage } from '../api/failureMessage';
 import { listCredentials, type Credential } from './walletApi';
+
+/** Why the credentials could not be fetched. */
+export type CredentialsError =
+  // The server refused, in words worth showing: no wallet connected, session ended.
+  | { kind: 'refused'; message: string }
+  // Nothing worth showing: no connection, a timeout, or a fault on the server.
+  | { kind: 'unavailable' };
 
 /**
  * The credentials in the signed-in user's wallet. Nothing is fetched until
- * `reload` is called. `credentials` is undefined until a fetch has succeeded,
- * and a later fetch that fails leaves the last list in place with `error` set.
+ * `reload` is called. `credentials` is undefined until a fetch has succeeded.
+ * `error` says why the last fetch failed, and is null if it did not; a fetch
+ * that fails leaves the last list in place.
  */
 export function useCredentials() {
   const [credentials, setCredentials] = useState<Credential[]>();
-  const [error, setError] = useState<unknown>();
+  const [error, setError] = useState<CredentialsError | null>(null);
   const [loading, setLoading] = useState(true);
   // Counts the fetches started, so that only the newest one reports back.
   const newest = useRef(0);
@@ -21,10 +30,10 @@ export function useCredentials() {
       const list = await listCredentials();
       if (request !== newest.current) return;
       setCredentials(list);
-      setError(undefined);
+      setError(null);
     } catch (failure) {
       if (request !== newest.current) return;
-      setError(failure);
+      setError(toCredentialsError(failure));
     }
     setLoading(false);
   }, []);
@@ -38,4 +47,10 @@ export function useCredentials() {
   );
 
   return { credentials, error, loading, reload };
+}
+
+// Whatever was thrown is sorted here, so that the screen never handles it raw.
+function toCredentialsError(failure: unknown): CredentialsError {
+  const message = refusalMessage(failure);
+  return message ? { kind: 'refused', message } : { kind: 'unavailable' };
 }
