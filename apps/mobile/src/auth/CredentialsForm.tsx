@@ -4,7 +4,7 @@ import type { TextInput } from 'react-native';
 
 import { failureMessage } from '../api/failureMessage';
 import { forgetLogin, getSavedLogin, saveLogin } from './savedLogin';
-import { getOrganisation } from './session';
+import { getOrganisation, hasSessionExpired } from './session';
 import { useAuth } from './useAuth';
 
 // The form's wording in one place, ready to move into translations.
@@ -23,6 +23,7 @@ const copy = {
   organisationInvalid: 'Enter your organisation using only letters, numbers and hyphens.',
   organisationUnknown: 'We could not find an organisation with that name. Check it and try again.',
   failed: 'We could not sign you in. Check your connection and try again.',
+  sessionEnded: 'Your session has ended. Sign in again to continue.',
   elsewhereTitle: 'Already signed in',
   elsewhere: (where?: string) =>
     `This account is already signed in ${where ? `from ${where}` : 'on another device'}. Continue here and sign out the other device?`,
@@ -59,6 +60,8 @@ export function CredentialsForm({ onNeedsCode, onRejected }: CredentialsFormProp
   const [remember, setRemember] = useState(true);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [failure, setFailure] = useState<string>();
+  // The user is here because the server ended their session. Said until they try to sign in.
+  const [sessionEnded, setSessionEnded] = useState(hasSessionExpired);
   const [submitting, setSubmitting] = useState(false);
   // The account is in use elsewhere and the user is being asked whether to take over.
   const [confirming, setConfirming] = useState(false);
@@ -85,6 +88,7 @@ export function CredentialsForm({ onNeedsCode, onRejected }: CredentialsFormProp
     };
     setErrors(found);
     setFailure(undefined);
+    setSessionEnded(false);
     if (found.email || found.password || found.organisation) {
       // The first field that needs putting right.
       (found.email ? emailRef : found.password ? passwordRef : organisationRef).current?.focus();
@@ -130,6 +134,7 @@ export function CredentialsForm({ onNeedsCode, onRejected }: CredentialsFormProp
         <Text variant="headingLg">{copy.title}</Text>
         <Text color="secondary">{copy.intro}</Text>
       </Stack>
+      {sessionEnded ? <Banner tone="warning" message={copy.sessionEnded} /> : null}
       {failure ? <Banner tone="danger" message={failure} /> : null}
       <Stack gap="lg">
         <TextField

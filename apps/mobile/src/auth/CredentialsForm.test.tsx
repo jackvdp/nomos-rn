@@ -6,7 +6,7 @@ import { ApiError } from '../api/client';
 import * as authApi from './authApi';
 import { CredentialsForm } from './CredentialsForm';
 import { forgetLogin, getSavedLogin, saveLogin } from './savedLogin';
-import { setOrganisation, setSession } from './session';
+import { expireSession, setOrganisation, setSession } from './session';
 
 // The server is the only thing left out: the form, `useAuth`, the session and
 // the saved details are the real ones, over the in-memory secure store.
@@ -55,6 +55,32 @@ describe('CredentialsForm', () => {
     expect(screen.getByLabelText('Email address')).toHaveDisplayValue('');
     expect(screen.getByLabelText('Password')).toHaveDisplayValue('');
     expect(screen.getByLabelText('Organisation')).toHaveDisplayValue('');
+  });
+
+  test('says so when the server has ended the session, until the user tries again', async () => {
+    setSession(session);
+    expireSession();
+    login.mockResolvedValue({ status: 'needsCode' });
+    await renderForm();
+    expect(
+      screen.getByText('Your session has ended. Sign in again to continue.'),
+    ).toBeOnTheScreen();
+
+    await fillIn(details);
+    await signIn();
+    await waitFor(() => expect(login).toHaveBeenCalled());
+    expect(
+      screen.queryByText('Your session has ended. Sign in again to continue.'),
+    ).not.toBeOnTheScreen();
+  });
+
+  test('says nothing of the kind after an ordinary sign-out', async () => {
+    setSession(session);
+    setSession(null);
+    await renderForm();
+    expect(
+      screen.queryByText('Your session has ended. Sign in again to continue.'),
+    ).not.toBeOnTheScreen();
   });
 
   test('starts with the details saved at the last sign-in', async () => {
