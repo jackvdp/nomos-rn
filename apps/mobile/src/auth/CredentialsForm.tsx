@@ -1,8 +1,9 @@
-import { Banner, Button, Dialog, Stack, Text, TextField } from '@nomos/ui';
+import { Banner, Button, Checkbox, Dialog, Stack, Text, TextField } from '@nomos/ui';
 import { useRef, useState } from 'react';
 import type { TextInput } from 'react-native';
 
 import { failureMessage } from '../api/failureMessage';
+import { forgetLogin, getSavedLogin, saveLogin } from './savedLogin';
 import { getOrganisation } from './session';
 import { useAuth } from './useAuth';
 
@@ -13,6 +14,7 @@ const copy = {
   email: 'Email address',
   password: 'Password',
   organisation: 'Organisation',
+  remember: 'Remember my details on this device',
   submit: 'Sign in',
   emailRequired: 'Enter your email address.',
   emailInvalid: 'Enter an email address in the format name@example.org.',
@@ -46,10 +48,15 @@ export function CredentialsForm({ onNeedsCode, onRejected }: CredentialsFormProp
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const organisationRef = useRef<TextInput>(null);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  // Starts with the organisation last signed in to, if there was one.
-  const [organisation, setOrganisation] = useState(() => getOrganisation() ?? '');
+  // The form starts with the details last signed in with, if they were saved.
+  const [saved] = useState(getSavedLogin);
+  const [email, setEmail] = useState(saved?.email ?? '');
+  const [password, setPassword] = useState(saved?.password ?? '');
+  // Without saved details, the organisation last tried is still worth having.
+  const [organisation, setOrganisation] = useState(
+    () => saved?.organisation ?? getOrganisation() ?? '',
+  );
+  const [remember, setRemember] = useState(true);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [failure, setFailure] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
@@ -89,6 +96,15 @@ export function CredentialsForm({ onNeedsCode, onRejected }: CredentialsFormProp
     try {
       // On `signedIn` the session has started and the app moves on from this screen.
       const result = await auth.signIn(name, address, password, replaceOtherSession);
+      // Either way the server has accepted the password, so the details are
+      // right. Signing in does not wait for them to be saved or forgotten.
+      if (result.status === 'signedIn' || result.status === 'needsCode') {
+        if (remember) {
+          saveLogin({ organisation: name, email: address, password });
+        } else {
+          forgetLogin();
+        }
+      }
       if (result.status === 'unknownOrganisation') {
         // The field is not given focus: it is the last one, so the keyboard
         // would come up over the message.
@@ -176,6 +192,7 @@ export function CredentialsForm({ onNeedsCode, onRejected }: CredentialsFormProp
           returnKeyType="go"
           onSubmitEditing={() => submit(false)}
         />
+        <Checkbox label={copy.remember} checked={remember} onChange={setRemember} />
       </Stack>
       <Button label={copy.submit} fullWidth loading={submitting} onPress={() => submit(false)} />
       <Dialog

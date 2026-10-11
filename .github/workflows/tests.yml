@@ -23,5 +23,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # Jest in every workspace that has a test script: tokens (unit) and ui (component and story tests).
+      # Jest in every workspace that has a test script: tokens (unit), ui (component and story
+      # tests) and mobile (unit and component tests).
       - run: npm test

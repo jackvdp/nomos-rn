@@ -35,6 +35,12 @@
             "imageWidth": 180
           }
         }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": false
+        }
       ]
     ]
   }
