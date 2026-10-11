@@ -33,6 +33,13 @@ npm test                    # Jest in every workspace
 To run a script in a single workspace, use `-w`, e.g.
 `npm test -w @nomos/ui` or `npm run storybook:web -w @nomos/storybook`.
 
+## Pull requests
+
+Every pull request runs `npm test` on GitHub Actions
+([.github/workflows/tests.yml](.github/workflows/tests.yml)), and a ruleset on
+`main` blocks the merge until that run passes. A workspace joins the run by
+having a `test` script in its `package.json`.
+
 ## How the packages work
 
 - **No build step.** Each package's `exports` points at `src/index.ts`, and
