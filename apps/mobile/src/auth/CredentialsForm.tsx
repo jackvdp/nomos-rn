@@ -2,7 +2,7 @@ import { Banner, Button, Dialog, Stack, Text, TextField } from '@nomos/ui';
 import { useRef, useState } from 'react';
 import type { TextInput } from 'react-native';
 
-import { failureMessage } from './failureMessage';
+import { failureMessage } from '../api/failureMessage';
 import { getOrganisation } from './session';
 import { useAuth } from './useAuth';
 

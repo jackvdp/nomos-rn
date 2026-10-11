@@ -2,8 +2,8 @@ import { Banner, Button, Stack, Text, TextField } from '@nomos/ui';
 import { useRef, useState } from 'react';
 import type { TextInput } from 'react-native';
 
+import { failureMessage } from '../api/failureMessage';
 import { resendCode } from './authApi';
-import { failureMessage } from './failureMessage';
 import { useAuth } from './useAuth';
 
 // The form's wording in one place, ready to move into translations.

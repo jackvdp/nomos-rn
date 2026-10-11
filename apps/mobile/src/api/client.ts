@@ -35,17 +35,27 @@ interface Envelope {
   error?: { message?: string };
 }
 
+/** GETs `path` from the NOMOS REST API. See `request`. */
+export function get(path: string): Promise<unknown> {
+  return request('GET', path);
+}
+
+/** POSTs `body` as JSON to the NOMOS REST API. See `request`. */
+export function post(path: string, body?: unknown): Promise<unknown> {
+  return request('POST', path, body);
+}
+
 /**
- * POSTs JSON to the NOMOS REST API and returns the `data` from its
+ * Calls the NOMOS REST API and returns the `data` from its
  * `{ success, data | error, timestamp }` envelope. Every request carries the
  * device id, the organisation once one has been chosen, and the access token
  * once there is a session. Throws `ApiError` when the server refuses the
  * request. A network failure or timeout throws whatever `fetch` throws.
  */
-export async function post(path: string, body?: unknown): Promise<unknown> {
+async function request(method: 'GET' | 'POST', path: string, body?: unknown): Promise<unknown> {
   const session = getSession();
   const response = await fetch(`${API_URL}${path}`, {
-    method: 'POST',
+    method,
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',

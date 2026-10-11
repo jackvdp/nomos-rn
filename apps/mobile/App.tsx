@@ -1,13 +1,4 @@
-import {
-  Button,
-  fonts,
-  Screen,
-  Stack,
-  Text,
-  ThemeProvider,
-  ToastProvider,
-  useToast,
-} from '@nomos/ui';
+import { fonts, ThemeProvider, ToastProvider } from '@nomos/ui';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -15,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useAuth } from './src/auth/useAuth';
+import { SignedIn } from './src/SignedIn';
 import { SignedOut } from './src/SignedOut';
 
 // The splash screen would otherwise go as soon as the app starts, leaving a
@@ -54,7 +46,7 @@ export default function App() {
           {/* The app's default. It comes first so that a screen can mount its own over it. */}
           <StatusBar style="auto" />
           {session ? (
-            <Home />
+            <SignedIn />
           ) : (
             <SignedOut
               onboarded={onboarded}
@@ -66,24 +58,5 @@ export default function App() {
         </ToastProvider>
       </ThemeProvider>
     </SafeAreaProvider>
-  );
-}
-
-// Placeholder until navigation and the first real screens land.
-function Home() {
-  const toast = useToast();
-  const { signOut } = useAuth();
-  return (
-    <Screen>
-      <Stack gap="md">
-        <Text variant="headingLg">NOMOS</Text>
-        <Text color="secondary">This app renders with @nomos/ui.</Text>
-        <Button
-          label="Show a toast"
-          onPress={() => toast.show({ message: 'Design library connected', tone: 'success' })}
-        />
-        <Button label="Sign out" variant="secondary" onPress={signOut} />
-      </Stack>
-    </Screen>
   );
 }
