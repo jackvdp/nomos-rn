@@ -1,4 +1,5 @@
 import { Card, Icon, makeStyles, Screen, useReducedMotion, useTheme } from '@nomos/ui';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect, useEffectEvent, useState } from 'react';
 import {
   BackHandler,
@@ -11,6 +12,7 @@ import {
 } from 'react-native';
 import Animated, {
   Easing,
+  useAnimatedReaction,
   useAnimatedRef,
   useAnimatedStyle,
   useDerivedValue,
@@ -22,6 +24,7 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { scheduleOnRN } from 'react-native-worklets';
 
 import { Drawing } from '../brand/Drawing';
 import { headerLogoWidth, Logo } from '../brand/Logo';
@@ -77,6 +80,18 @@ export function LoginScreen({ reveal, scroll, onBack }: LoginScreenProps) {
     },
     [scroll],
   );
+  // How far down the content the card's top is. Out of reach until it is laid out.
+  const cardTop = useSharedValue(Number.POSITIVE_INFINITY);
+  // Whether the card has been scrolled up under the clock in the status bar.
+  const [cardUnderClock, setCardUnderClock] = useState(false);
+  const clockMiddle = insets.top / 2;
+  useAnimatedReaction(
+    () => scroll.value > cardTop.value - clockMiddle,
+    (under, was) => {
+      if (under !== was) scheduleOnRN(setCardUnderClock, under);
+    },
+    [scroll, cardTop, clockMiddle],
+  );
   // Set once the password has been accepted and a one-time code emailed to this address.
   const [codeSentTo, setCodeSentTo] = useState<string>();
   const step = codeSentTo ? 'code' : 'credentials';
@@ -129,50 +144,60 @@ export function LoginScreen({ reveal, scroll, onBack }: LoginScreenProps) {
   }, []);
 
   return (
-    <View style={styles.root}>
-      <Screen
-        scroll
-        scrollRef={scroller}
-        // The band reaches up behind the status bar, and scrolls with the content.
-        scrollUnderStatusBar
-        padding={screenPadding}
-        style={styles.screen}
-      >
-        {/*
-          Where it is on the onboarding pages, and left out of the entrance
-          and of `reveal`, so that the logo holds still as one screen gives
-          way to the other.
-        */}
-        <View style={styles.logo}>
-          <Logo width={headerLogoWidth} />
-        </View>
-        {/*
-          The drawing and the card sit towards the top of the space under the
-          logo, where the card overlaps the band and stays clear of the keyboard.
-        */}
-        <View style={styles.above} />
-        <Animated.View aria-hidden style={[styles.drawing, appearStyle, shakeStyle]}>
-          {/* Keyed so that each step's drawing plays from the start. */}
-          <Drawing key={step} source={drawings[step]} size={drawingSize} />
-        </Animated.View>
-        <Animated.View style={cardStyle}>
-          <Card padding="xl" style={styles.card}>
-            {codeSentTo ? (
-              <CodeForm
-                email={codeSentTo}
-                onBack={() => setCodeSentTo(undefined)}
-                onRejected={shake}
-              />
-            ) : (
-              <CredentialsForm onNeedsCode={setCodeSentTo} onRejected={shake} />
-            )}
-          </Card>
-        </Animated.View>
-        <View style={styles.below} />
-      </Screen>
+    <Screen
+      scroll
+      scrollRef={scroller}
+      // The band reaches up behind the status bar, and scrolls with the content.
+      scrollUnderStatusBar
+      padding={screenPadding}
+      style={styles.screen}
+    >
       {/*
-        Over the band, clear of the content. The code step has its own way
-        back to the email and password, so this shows on the first step only.
+        The status bar is light, for the band. Over the card it has to go by
+        the colour scheme, as the card does.
+      */}
+      {cardUnderClock && <StatusBar style="auto" />}
+      {/*
+        Where it is on the onboarding pages, and left out of the entrance
+        and of `reveal`, so that the logo holds still as one screen gives
+        way to the other.
+      */}
+      <View style={styles.logo}>
+        <Logo width={headerLogoWidth} />
+      </View>
+      {/*
+        The drawing and the card sit towards the top of the space under the
+        logo, where the card overlaps the band and stays clear of the keyboard.
+      */}
+      <View style={styles.above} />
+      <Animated.View aria-hidden style={[styles.drawing, appearStyle, shakeStyle]}>
+        {/* Keyed so that each step's drawing plays from the start. */}
+        <Drawing key={step} source={drawings[step]} size={drawingSize} />
+      </Animated.View>
+      <Animated.View
+        style={cardStyle}
+        onLayout={(event) => {
+          cardTop.value = event.nativeEvent.layout.y;
+        }}
+      >
+        <Card padding="xl" style={styles.card}>
+          {codeSentTo ? (
+            <CodeForm
+              email={codeSentTo}
+              onBack={() => setCodeSentTo(undefined)}
+              onRejected={shake}
+            />
+          ) : (
+            <CredentialsForm onNeedsCode={setCodeSentTo} onRejected={shake} />
+          )}
+        </Card>
+      </Animated.View>
+      <View style={styles.below} />
+      {/*
+        Beside the logo, and part of the content like it: the card would
+        otherwise come up under it when a field takes focus. The code step has
+        its own way back to the email and password, so this shows on the first
+        step only.
       */}
       {!codeSentTo && (
         <Animated.View
@@ -200,7 +225,7 @@ export function LoginScreen({ reveal, scroll, onBack }: LoginScreenProps) {
           </Pressable>
         </Animated.View>
       )}
-    </View>
+    </Screen>
   );
 }
 
@@ -247,9 +272,6 @@ function useShake() {
 }
 
 const useStyles = makeStyles((t) => ({
-  root: {
-    flex: 1,
-  },
   // Lets the band show through.
   screen: {
     backgroundColor: 'transparent',
